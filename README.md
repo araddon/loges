@@ -1,11 +1,21 @@
 Go Logtash Writer
 ---------------------------------
 
-Writes to elasticsearch using http://logstash.net/ format to allow usage of http://kibana.org/.   
+A go library for writing to Elasticsearch using Logstash format. Reads Fluentd format from stdin and kafka.
 
-Has readers for Stdin that assumes http://fluentd.org/ format. 
+Why?  
+---------
+I wanted to send data to Elasticsearch for viewing in http://kibana.org/ from within a go app for debugging purposes.  But also wanted to send some log files using http://fluentd as well and choose go instead of native ruby support provided by Fluentd.
 
-Also reads from Kafka to send.
+
+Features
+-----------------
+
+  * Writes to elasticsearch using http://logstash.net/ format to allow usage of http://kibana.org/.   
+  * Has readers for Stdin
+  * Formatter for parsing fluentd format http://fluentd.org/
+  * reads from Kafka 
+  * custom formatters allowed (see below)
 
 
 Create Custom Formatter (see /example/main.go)::
