@@ -1,7 +1,7 @@
 package loges
 
 import (
-	kafka "github.com/apache/kafka/clients/gokafka"
+	kafka "github.com/araddon/kafka/clients/gokafka"
 	log "github.com/ngmoco/timber"
 	"strconv"
 	"strings"
