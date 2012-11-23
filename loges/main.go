@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/araddon/loges"
+	"github.com/araddon/loges/kafka"
 	"math"
 )
 
@@ -49,9 +50,9 @@ func main() {
 		loges.FormatterSet(loges.FluentdFormatter(logType, nil))
 		go loges.StdinPruducer(msgChan)
 	case "kafka":
-		loges.FormatterSet(loges.KafkaFormatter)
+		loges.FormatterSet(kafka.KafkaFormatter)
 		//partitionstr, topic, kafkaHost string, offset, maxMsgCt uint64, maxSize uint
-		go loges.RunKafkaConsumer(msgChan, partitionstr, topic, kafkaHost, offset, maxMsgCt, maxSize)
+		go kafka.RunKafkaConsumer(msgChan, partitionstr, topic, kafkaHost, offset, maxMsgCt, maxSize)
 	}
 
 	done := make(chan byte)

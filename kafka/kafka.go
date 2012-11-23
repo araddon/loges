@@ -1,27 +1,28 @@
-package loges
+package kafka
 
 import (
 	kafka "github.com/araddon/kafka/clients/gokafka"
+	"github.com/araddon/loges"
 	log "github.com/ngmoco/timber"
 	"strconv"
 	"strings"
 )
 
 // Kafka formatter, for parsing kafka messages
-func KafkaFormatter(e *LineEvent) *Event {
+func KafkaFormatter(e *loges.LineEvent) *loges.Event {
 	//2012-11-22 05:07:51 +0000 lio.home.ubuntu.log.collect.log.vm2: {"message":"runtime error: close of closed channel"}
 	if ml := strings.SplitN(string(e.Data), ": ", 2); len(ml) > 1 {
 		log.Debug("%v\n", strings.Join(ml, "||"))
 		if len(ml[0]) > 26 {
 			//d := ml[0][0:25]
 			src := ml[0][26:]
-			return NewEvent("golog", src, ml[1])
+			return loges.NewEvent("golog", src, ml[1])
 		}
 	}
 	return nil
 }
 
-func RunKafkaConsumer(msgChan chan *LineEvent, partitionstr, topic, kafkaHost string, offset, maxMsgCt uint64, maxSize uint) {
+func RunKafkaConsumer(msgChan chan *loges.LineEvent, partitionstr, topic, kafkaHost string, offset, maxMsgCt uint64, maxSize uint) {
 	var broker *kafka.BrokerConsumer
 
 	parts := strings.Split(partitionstr, ",")
@@ -44,7 +45,7 @@ func RunKafkaConsumer(msgChan chan *LineEvent, partitionstr, topic, kafkaHost st
 				panic("ending")
 			}
 			//msg.Print()
-			msgChan <- &LineEvent{Data: msg.Payload(), Offset: msg.Offset(), Item: msg}
+			msgChan <- &loges.LineEvent{Data: msg.Payload(), Offset: msg.Offset(), Item: msg}
 		} else {
 			log.Error("No kafka message?")
 			break
