@@ -21,6 +21,7 @@ type LineEvent struct {
 type LineFormatter func(*LineEvent) *Event
 
 func FormatterSet(lf LineFormatter) {
+	println("setting foramtter")
 	formatter = lf
 }
 

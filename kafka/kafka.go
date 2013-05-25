@@ -25,6 +25,7 @@ func KafkaFormatter(e *loges.LineEvent) *loges.Event {
 func RunKafkaConsumer(msgChan chan *loges.LineEvent, partitionstr, topic, kafkaHost string, offset, maxMsgCt uint64, maxSize uint) {
 	var broker *kafka.BrokerConsumer
 
+	log.Info("Connecting to host=%s topic=%s part=%s", kafkaHost, topic, partitionstr)
 	parts := strings.Split(partitionstr, ",")
 	if len(parts) > 1 {
 		tps := kafka.NewTopicPartitions(topic, partitionstr, offset, uint32(maxSize))
