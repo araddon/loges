@@ -30,7 +30,7 @@ func GoFileFormatter(logstashType string, tags []string) LineFormatter {
 						evt.Fields["host"] = hostName
 						//evt.Fields = msg
 						//evt.Source = d.Source
-						u.Info(evt.String())
+						//u.Debug(evt.String())
 						return evt
 					}
 				} else {
@@ -40,17 +40,16 @@ func GoFileFormatter(logstashType string, tags []string) LineFormatter {
 						evt.Fields["host"] = hostName
 						//evt.Fields = msg
 						//evt.Source = d.Source
-						u.Info(evt.String())
+						//u.Debug(evt.String())
 						return evt
 					}
 				}
-				u.Warnf("cant parse %v", err)
 				evt := NewTsEvent(logstashType, d.Source, line, time.Now())
 				evt.Fields = make(map[string]interface{})
 				evt.Fields["host"] = hostName
 				//evt.Fields = msg
 				//evt.Source = d.Source
-				u.Info(evt.String())
+				//u.Debug(evt.String())
 				return evt
 			} else {
 				u.Warn("bad? ", line)

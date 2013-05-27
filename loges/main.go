@@ -35,15 +35,18 @@ func Usage() {
 
 For tail, pass arguments at command line:
 	
-	loges --source=tail --filter=color \
+	# take two files, output to stdout, using gofile formatter
+	loges --filter=gofiles \
 		/path/to/myfile.log \
 		/path/to/myfile2.log 
 
-	loges --source=tail --filter=gofiles --out=elasticsearch \
+	# tail this api.log file to elasticsarch
+	loges --filter=gofiles --out=elasticsearch \
 		--eshost=192.168.1.13 --loglevel=NONE \
 		/mnt/log/api.log
 
-	loges --source=stdin --filter=color 
+	# read stdin and send to stdout
+	myapp | loges --source=stdin --filter=gofiles 
 `
 	fmt.Fprintf(os.Stderr, usage, os.Args[0])
 	flag.PrintDefaults()
