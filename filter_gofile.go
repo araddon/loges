@@ -21,24 +21,37 @@ func GoFileFormatter(logstashType string, tags []string) LineFormatter {
 		} else {
 			parts := strings.SplitN(line, " ", 3)
 			if len(parts) > 2 {
-				if t, err := time.Parse("2006/01/02 15:04:05.000000", parts[0]+" "+parts[1]); err == nil {
-					evt := NewTsEvent(logstashType, d.Source, parts[2], t)
-					evt.Fields = make(map[string]interface{})
-					evt.Fields["host"] = hostName
-					//evt.Fields = msg
-					//evt.Source = d.Source
-					u.Info(evt.String())
-					return evt
+				datePart := parts[0] + " " + parts[1]
+				// "2006/01/02 15:04:05.000000"
+				if len(datePart) > 24 {
+					if t, err := time.Parse("2006/01/02 15:04:05.000000", datePart); err == nil {
+						evt := NewTsEvent(logstashType, d.Source, parts[2], t)
+						evt.Fields = make(map[string]interface{})
+						evt.Fields["host"] = hostName
+						//evt.Fields = msg
+						//evt.Source = d.Source
+						u.Info(evt.String())
+						return evt
+					}
 				} else {
-					u.Warnf("cant parse %v", err)
-					evt := NewTsEvent(logstashType, d.Source, line, time.Now())
-					evt.Fields = make(map[string]interface{})
-					evt.Fields["host"] = hostName
-					//evt.Fields = msg
-					//evt.Source = d.Source
-					u.Info(evt.String())
-					return evt
+					if t, err := time.Parse("2006/01/02 15:04:05", datePart); err == nil {
+						evt := NewTsEvent(logstashType, d.Source, parts[2], t)
+						evt.Fields = make(map[string]interface{})
+						evt.Fields["host"] = hostName
+						//evt.Fields = msg
+						//evt.Source = d.Source
+						u.Info(evt.String())
+						return evt
+					}
 				}
+				u.Warnf("cant parse %v", err)
+				evt := NewTsEvent(logstashType, d.Source, line, time.Now())
+				evt.Fields = make(map[string]interface{})
+				evt.Fields["host"] = hostName
+				//evt.Fields = msg
+				//evt.Source = d.Source
+				u.Info(evt.String())
+				return evt
 			} else {
 				u.Warn("bad? ", line)
 			}
