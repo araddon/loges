@@ -3,7 +3,7 @@ package loges
 import (
 	"bytes"
 	"encoding/json"
-	log "github.com/ngmoco/timber"
+	u "github.com/araddon/gou"
 	"time"
 )
 
@@ -13,7 +13,7 @@ func FluentdFormatter(logstashType string, tags []string) LineFormatter {
 		//2012-11-22 05:07:51 +0000 lio.home.ubuntu.log.collect.log.vm2: {"message":"runtime error: close of closed channel"}
 		if lineParts := bytes.SplitN(d.Data, []byte{':', ' '}, 2); len(lineParts) > 1 {
 			if len(lineParts[0]) > 26 {
-				log.Debug("%s %s\n", string(lineParts[0]), string(lineParts[1]))
+				u.Debug("%s %s\n", string(lineParts[0]), string(lineParts[1]))
 				bsrc := lineParts[0][26:]
 				bdate := lineParts[0][0:25]
 				var msg map[string]interface{}
@@ -30,12 +30,12 @@ func FluentdFormatter(logstashType string, tags []string) LineFormatter {
 						evt.Fields = msg
 						return evt
 					} else {
-						log.Debug("%v", err)
+						u.Debug("%v", err)
 						return NewEvent(logstashType, string(bsrc), string(lineParts[1]))
 					}
 
 				} else {
-					log.Warn("bad message? %v", err)
+					u.Warn("bad message? %v", err)
 				}
 
 			}

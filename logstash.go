@@ -2,26 +2,35 @@ package loges
 
 import (
 	"encoding/json"
-	//log "github.com/ngmoco/timber"
+	u "github.com/araddon/gou"
 	"labix.org/v2/mgo/bson"
+	"os"
 	"time"
 )
 
 var (
 	esIndex   string
 	formatter LineFormatter
+	hostName  string = "Unknown"
 )
+
+func init() {
+	if host, err := os.Hostname(); err == nil {
+		hostName = host
+	}
+}
 
 // Representing data about a line from FluentD
 type LineEvent struct {
 	Data   []byte
+	Source string
 	Offset uint64
 	Item   interface{}
 }
 type LineFormatter func(*LineEvent) *Event
 
 func FormatterSet(lf LineFormatter) {
-	println("setting foramtter")
+	u.Debug("setting foramtter")
 	formatter = lf
 }
 

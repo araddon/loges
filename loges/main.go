@@ -2,35 +2,64 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	u "github.com/araddon/gou"
 	"github.com/araddon/loges"
 	"github.com/araddon/loges/kafka"
+	tail "github.com/fw42/go-tail"
 	"math"
+	"os"
 )
 
 var (
 	msgChan      = make(chan *loges.LineEvent, 1000)
-	hostname     string
+	esHostName   string
 	logConfig    string
 	logLevel     string
 	logType      string
 	esIndex      string
-	format       string
+	source       string
+	filter       string
 	kafkaHost    string
 	topic        string
+	output       string
 	partitionstr string
 	offset       uint64
 	maxSize      uint
 	maxMsgCt     uint64
+	colorize     bool
 )
 
+func Usage() {
+	usage := `Usage of %s:
+
+For tail, pass arguments at command line:
+	
+	loges --source=tail --filter=color \
+		/path/to/myfile.log \
+		/path/to/myfile2.log 
+
+	loges --source=tail --filter=gofiles --out=elasticsearch \
+		--eshost=192.168.1.13 --loglevel=NONE \
+		/mnt/log/api.log
+
+	loges --source=stdin --filter=color 
+`
+	fmt.Fprintf(os.Stderr, usage, os.Args[0])
+	flag.PrintDefaults()
+}
+
 func init() {
-	flag.StringVar(&hostname, "hostname", "lio26", "host:port string for the kafka server")
-	flag.StringVar(&logConfig, "logconfig", "timber.xml", "file for logging config")
-	flag.StringVar(&logLevel, "loglevel", "INFO", "loglevel [NONE,DEBUG,INFO,WARNING,ERROR]")
-	flag.StringVar(&format, "source", "fluentd", "Format [fluentd,kafka]")
-	flag.StringVar(&logType, "logtype", "datatype", "Type of data for elasticsearch index")
+	flag.Usage = Usage
+	flag.StringVar(&esHostName, "eshost", "localhost", "host (no port) string for the elasticsearch server")
+	flag.StringVar(&logLevel, "loglevel", "DEBUG", "loglevel [NONE,DEBUG,INFO,WARNING,ERROR]")
+	flag.StringVar(&source, "source", "tail", "Format [stdin,kafka,tail]")
+	flag.StringVar(&filter, "filter", "fluentd", "Filter to apply [gofiles,fluentd]")
+	flag.StringVar(&output, "out", "stdout", "Output destiation [elasticsearch, stdout]")
+	flag.StringVar(&logType, "logtype", "gofiles", "Type of data for elasticsearch index")
+	flag.BoolVar(&colorize, "colorize", true, "Colorize Stdout?")
 	// kafka config info
-	flag.StringVar(&kafkaHost, "hostname", "localhost:9092", "host:port string for the kafka server")
+	flag.StringVar(&kafkaHost, "kafkahost", "localhost:9092", "host:port string for the kafka server")
 	flag.StringVar(&topic, "topic", "test", "topic to publish to")
 	flag.StringVar(&partitionstr, "partitions", "0", "partitions to publish to:  comma delimited")
 	flag.Uint64Var(&offset, "offset", 0, "offset to start consuming from")
@@ -40,21 +69,54 @@ func init() {
 
 func main() {
 	flag.Parse()
-	loges.TimberSetLogging("[%D %T] %s %L %M", logLevel)
-	// update the index occasionally
-	go loges.UpdateLogstashIndex()
-	// start an elasticsearch writer worker, for sending to elasticsearch
-	go loges.ToElasticSearch(msgChan, "golog", hostname)
-	switch format {
-	case "fluentd":
-		loges.FormatterSet(loges.FluentdFormatter(logType, nil))
-		go loges.StdinPruducer(msgChan)
-	case "kafka":
-		loges.FormatterSet(kafka.KafkaFormatter)
-		//partitionstr, topic, kafkaHost string, offset, maxMsgCt uint64, maxSize uint
-		go kafka.RunKafkaConsumer(msgChan, partitionstr, topic, kafkaHost, offset, maxMsgCt, maxSize)
+	done := make(chan bool)
+	u.SetupLogging(logLevel)
+	u.SetColorIfTerminal()
+	u.Debug("test logging")
+
+	// Setup output first, to ensure its ready when Source starts
+	switch output {
+	case "elasticsearch":
+		// update the Logstash date for the index occasionally
+		go loges.UpdateLogstashIndex()
+		// start an elasticsearch bulk worker, for sending to elasticsearch
+		go loges.ToElasticSearch(msgChan, "golog", esHostName)
+	case "stdout":
+		u.Error("setting output to stdout")
+		go loges.ToStdout(msgChan, colorize)
+	default:
+		println("No output set, required")
+		Usage()
+		os.Exit(1)
 	}
 
-	done := make(chan byte)
+	// now set up the formatter/filters
+	//for _, filter := range strings.Split(filters, ",") {}
+	switch filter {
+	case "gofiles":
+		loges.FormatterSet(loges.GoFileFormatter(logType, nil))
+	case "fluentd":
+		loges.FormatterSet(loges.FluentdFormatter(logType, nil))
+	case "kafka":
+		loges.FormatterSet(kafka.KafkaFormatter)
+	}
+
+	switch source {
+	case "tail":
+		config := tail.Config{Follow: true, ReOpen: true}
+		for _, filename := range flag.Args() {
+			go loges.TailFile(filename, config, done, msgChan)
+		}
+	case "kafka":
+		//partitionstr, topic, kafkaHost string, offset, maxMsgCt uint64, maxSize uint
+		go kafka.RunKafkaConsumer(msgChan, partitionstr, topic, kafkaHost, offset, maxMsgCt, maxSize)
+	case "stdin":
+		go loges.StdinPruducer(msgChan)
+	default: // "stdin"
+		println("No input set, required")
+		Usage()
+		os.Exit(1)
+	}
+
 	<-done
 }
