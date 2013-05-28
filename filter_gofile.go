@@ -10,6 +10,7 @@ import (
 
 // go file format [date source jsonmessage] parser
 func GoFileFormatter(logstashType string, tags []string) LineFormatter {
+	loc := time.UTC
 	return func(d *LineEvent) *Event {
 		// 2013/05/26 13:07:47.606937 rw.go:70: [INFO] RW service is up
 		// 2013/05/26 13:07:47.607 [DEBG] sink       Building sink for kafka from factory method
@@ -24,8 +25,8 @@ func GoFileFormatter(logstashType string, tags []string) LineFormatter {
 				datePart := parts[0] + " " + parts[1]
 				// "2006/01/02 15:04:05.000000"
 				if len(datePart) > 24 {
-					if t, err := time.Parse("2006/01/02 15:04:05.000000", datePart); err == nil {
-						evt := NewTsEvent(logstashType, d.Source, parts[2], t)
+					if _, err := time.Parse("2006/01/02 15:04:05.000000", datePart); err == nil {
+						evt := NewTsEvent(logstashType, d.Source, parts[2], time.Now().In(loc))
 						evt.Fields = make(map[string]interface{})
 						evt.Fields["host"] = hostName
 						//evt.Fields = msg
@@ -34,8 +35,8 @@ func GoFileFormatter(logstashType string, tags []string) LineFormatter {
 						return evt
 					}
 				} else {
-					if t, err := time.Parse("2006/01/02 15:04:05", datePart); err == nil {
-						evt := NewTsEvent(logstashType, d.Source, parts[2], t)
+					if _, err := time.Parse("2006/01/02 15:04:05", datePart); err == nil {
+						evt := NewTsEvent(logstashType, d.Source, parts[2], time.Now().In(loc))
 						evt.Fields = make(map[string]interface{})
 						evt.Fields["host"] = hostName
 						//evt.Fields = msg
