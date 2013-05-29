@@ -9,6 +9,7 @@ import (
 	tail "github.com/fw42/go-tail"
 	"math"
 	"os"
+	"strings"
 )
 
 var (
@@ -75,7 +76,8 @@ func main() {
 	done := make(chan bool)
 	u.SetupLogging(logLevel)
 	u.SetColorIfTerminal()
-	u.Debug("test logging")
+	esHostName = cleanEsHost(esHostName)
+	u.Debugf("Connecting to ES:  %s", esHostName)
 
 	// Setup output first, to ensure its ready when Source starts
 	switch output {
@@ -122,4 +124,16 @@ func main() {
 	}
 
 	<-done
+}
+
+func cleanEsHost(oldHost string) string {
+	// It is possible that they sent a list of posts with :9200
+	hosts := strings.Split(oldHost, ",")
+	if len(hosts) > 0 {
+		parts := strings.Split(hosts[0], ":")
+		if len(parts) > 0 {
+			return parts[0]
+		}
+	}
+	return oldHost
 }
