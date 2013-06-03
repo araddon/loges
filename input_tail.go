@@ -2,7 +2,6 @@ package loges
 
 import (
 	"bytes"
-	"fmt"
 	u "github.com/araddon/gou"
 	tail "github.com/fw42/go-tail"
 	"io/ioutil"
@@ -14,12 +13,13 @@ var (
 )
 
 func TailFile(filename string, config tail.Config, done chan bool, msgChan chan *LineEvent) {
-	defer func() { done <- true }()
+	u.Debug("Watching file ", filename)
 	t, err := tail.TailFile(filename, config)
 	if err != nil {
-		fmt.Println(err)
+		u.Error(err)
 		return
 	}
+	//defer func() { done <- true }()
 
 	lineHandler := MakeFileParser(filename, msgChan)
 	for line := range t.Lines {
@@ -27,7 +27,7 @@ func TailFile(filename string, config tail.Config, done chan bool, msgChan chan 
 	}
 	err = t.Wait()
 	if err != nil {
-		fmt.Println(err)
+		u.Error(err)
 	}
 }
 
