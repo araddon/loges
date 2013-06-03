@@ -47,7 +47,7 @@ For tail, pass arguments at command line:
 		/mnt/log/api.log
 
 	# read stdin and send to stdout
-	myapp | loges --source=stdin --filter=gofiles 
+	myapp | loges --source=stdin --filter=stdfiles 
 `
 	fmt.Fprintf(os.Stderr, usage, os.Args[0])
 	flag.PrintDefaults()
@@ -58,9 +58,9 @@ func init() {
 	flag.StringVar(&esHostName, "eshost", "localhost", "host (no port) string for the elasticsearch server")
 	flag.StringVar(&logLevel, "loglevel", "DEBUG", "loglevel [NONE,DEBUG,INFO,WARNING,ERROR]")
 	flag.StringVar(&source, "source", "tail", "Format [stdin,kafka,tail]")
-	flag.StringVar(&filter, "filter", "fluentd", "Filter to apply [gofiles,fluentd]")
+	flag.StringVar(&filter, "filter", "fluentd", "Filter to apply [stdfiles,fluentd]")
 	flag.StringVar(&output, "out", "stdout", "Output destiation [elasticsearch, stdout]")
-	flag.StringVar(&logType, "logtype", "gofiles", "Type of data for elasticsearch index")
+	flag.StringVar(&logType, "logtype", "stdfiles", "Type of data for elasticsearch index")
 	flag.BoolVar(&colorize, "colorize", true, "Colorize Stdout?")
 	// kafka config info
 	flag.StringVar(&kafkaHost, "kafkahost", "localhost:9092", "host:port string for the kafka server")
@@ -98,8 +98,8 @@ func main() {
 	// now set up the formatter/filters
 	//for _, filter := range strings.Split(filters, ",") {}
 	switch filter {
-	case "gofiles":
-		loges.FormatterSet(loges.GoFileFormatter(logType, nil))
+	case "stdfiles":
+		loges.FormatterSet(loges.FileFormatter(logType, nil))
 	case "fluentd":
 		loges.FormatterSet(loges.FluentdFormatter(logType, nil))
 	case "kafka":

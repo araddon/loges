@@ -8,13 +8,23 @@ import (
 	"time"
 )
 
-// go file format [date source jsonmessage] parser
-func GoFileFormatter(logstashType string, tags []string) LineFormatter {
+// file format [date source jsonmessage] parser
+func FileFormatter(logstashType string, tags []string) LineFormatter {
 	loc := time.UTC
+	pos := 0
+	posEnd := 0
+	logLevel := ""
+
 	return func(d *LineEvent) *Event {
 		// 2013/05/26 13:07:47.606937 rw.go:70: [INFO] RW service is up
 		// 2013/05/26 13:07:47.607 [DEBG] sink       Building sink for kafka from factory method
 		line := string(d.Data)
+
+		// Find first square brackets
+		pos = strings.IndexRune(line, '[')
+		posEnd = strings.IndexRune(line, ']')
+		logLevel = line[pos+1 : posEnd-1]
+
 		//u.Warn(line)
 		if len(line) < 10 {
 			u.Warn(line)
@@ -29,6 +39,7 @@ func GoFileFormatter(logstashType string, tags []string) LineFormatter {
 						evt := NewTsEvent(logstashType, d.Source, parts[2], time.Now().In(loc))
 						evt.Fields = make(map[string]interface{})
 						evt.Fields["host"] = hostName
+						evt.Fields["level"] = logLevel
 						//evt.Fields = msg
 						//evt.Source = d.Source
 						//u.Debug(evt.String())
@@ -39,6 +50,7 @@ func GoFileFormatter(logstashType string, tags []string) LineFormatter {
 						evt := NewTsEvent(logstashType, d.Source, parts[2], time.Now().In(loc))
 						evt.Fields = make(map[string]interface{})
 						evt.Fields["host"] = hostName
+						evt.Fields["level"] = logLevel
 						//evt.Fields = msg
 						//evt.Source = d.Source
 						//u.Debug(evt.String())
@@ -48,6 +60,7 @@ func GoFileFormatter(logstashType string, tags []string) LineFormatter {
 				evt := NewTsEvent(logstashType, d.Source, line, time.Now())
 				evt.Fields = make(map[string]interface{})
 				evt.Fields["host"] = hostName
+				evt.Fields["level"] = logLevel
 				//evt.Fields = msg
 				//evt.Source = d.Source
 				//u.Debug(evt.String())

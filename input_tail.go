@@ -21,7 +21,7 @@ func TailFile(filename string, config tail.Config, done chan bool, msgChan chan 
 		return
 	}
 
-	lineHandler := MakeGoFileParser(filename, msgChan)
+	lineHandler := MakeFileParser(filename, msgChan)
 	for line := range t.Lines {
 		lineHandler(line.Text)
 	}
@@ -38,7 +38,7 @@ func TailFile(filename string, config tail.Config, done chan bool, msgChan chan 
 //
 // This expects log files in this format
 //   2013-05-25 13:25:32.475 authctx.go:169: [DEBUG] sink       Building sink for kafka from factory method
-func MakeGoFileParser(filename string, msgChan chan *LineEvent) func(string) {
+func MakeFileParser(filename string, msgChan chan *LineEvent) func(string) {
 	// Builder used to build the colored string.
 	buf := new(bytes.Buffer)
 
@@ -60,8 +60,9 @@ func MakeGoFileParser(filename string, msgChan chan *LineEvent) func(string) {
 			startsNumeric = true
 		}
 
-		// Find next square bracket, break loop when none was found.
+		// Find first square bracket
 		pos = strings.IndexRune(line, '[')
+
 		if pos == -1 && !startsNumeric {
 			// accumulate in buffer, probably/possibly a panic?
 			buf.WriteString(line)
