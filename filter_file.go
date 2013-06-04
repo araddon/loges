@@ -23,7 +23,11 @@ func FileFormatter(logstashType string, tags []string) LineFormatter {
 		// Find first square brackets
 		pos = strings.IndexRune(line, '[')
 		posEnd = strings.IndexRune(line, ']')
-		logLevel = line[pos+1 : posEnd-1]
+		if pos > 0 && posEnd > 0 {
+			logLevel = line[pos+1 : posEnd-1]
+		} else {
+			logLevel = "NONE"
+		}
 
 		//u.Warn(line)
 		if len(line) < 10 {
