@@ -19,7 +19,7 @@ func ToStdout(msgChan chan *LineEvent, colorize bool) {
 		pos = strings.IndexRune(line, '[')
 		if pos == -1 {
 			os.Stdout.WriteString(line)
-			os.Stdout.Write([]byte{'\n'})
+			//os.Stdout.Write([]byte{'\n'})
 		} else {
 			if len(line) < pos+6 {
 				continue
@@ -36,7 +36,7 @@ func ToStdout(msgChan chan *LineEvent, colorize bool) {
 			default:
 				//logLevel := u.LogColor[u.ERROR]
 			}
-			os.Stdout.WriteString(logLevel + line + "\033[0m\n")
+			os.Stdout.WriteString(logLevel + line + "\033[0m")
 		}
 	}
 }

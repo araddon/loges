@@ -46,8 +46,8 @@ For tail, pass arguments at command line:
 		--eshost=192.168.1.13 --loglevel=NONE \
 		/mnt/log/api.log
 
-	# read stdin and send to stdout
-	myapp | loges --source=stdin --filter=stdfiles 
+	# read stdin and send to stdout colorized
+	myapp | loges 
 `
 	fmt.Fprintf(os.Stderr, usage, os.Args[0])
 	flag.PrintDefaults()
@@ -58,7 +58,7 @@ func init() {
 	flag.StringVar(&esHostName, "eshost", "localhost", "host (no port) string for the elasticsearch server")
 	flag.StringVar(&logLevel, "loglevel", "DEBUG", "loglevel [NONE,DEBUG,INFO,WARNING,ERROR]")
 	flag.StringVar(&source, "source", "tail", "Format [stdin,kafka,tail]")
-	flag.StringVar(&filter, "filter", "fluentd", "Filter to apply [stdfiles,fluentd]")
+	flag.StringVar(&filter, "filter", "stdfiles", "Filter to apply [stdfiles,fluentd]")
 	flag.StringVar(&output, "out", "stdout", "Output destiation [elasticsearch, stdout]")
 	flag.StringVar(&logType, "logtype", "stdfiles", "Type of data for elasticsearch index")
 	flag.BoolVar(&colorize, "colorize", true, "Colorize Stdout?")
@@ -77,7 +77,10 @@ func main() {
 	u.SetupLogging(logLevel)
 	u.SetColorIfTerminal()
 	esHostName = cleanEsHost(esHostName)
-	u.Debugf("Connecting to ES:  %s", esHostName)
+	if len(flag.Args()) == 0 {
+		source = "stdin"
+	}
+	u.Debugf("Connecting to ES:  %s argct=:%d source=%v", esHostName, len(flag.Args()), source)
 
 	// Setup output first, to ensure its ready when Source starts
 	switch output {
@@ -87,7 +90,7 @@ func main() {
 		// start an elasticsearch bulk worker, for sending to elasticsearch
 		go loges.ToElasticSearch(msgChan, "golog", esHostName)
 	case "stdout":
-		u.Error("setting output to stdout")
+		u.Error("setting output to stdout ", colorize)
 		go loges.ToStdout(msgChan, colorize)
 	default:
 		println("No output set, required")
