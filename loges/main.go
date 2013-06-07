@@ -57,7 +57,7 @@ func init() {
 	flag.Usage = Usage
 	flag.StringVar(&esHostName, "eshost", "localhost", "host (no port) string for the elasticsearch server")
 	flag.StringVar(&logLevel, "loglevel", "DEBUG", "loglevel [NONE,DEBUG,INFO,WARNING,ERROR]")
-	flag.StringVar(&source, "source", "tail", "Format [stdin,kafka,tail]")
+	flag.StringVar(&source, "source", "tail", "Data Source for log file/data [stdin,kafka,tail]")
 	flag.StringVar(&filter, "filter", "stdfiles", "Filter to apply [stdfiles,fluentd]")
 	flag.StringVar(&output, "out", "stdout", "Output destiation [elasticsearch, stdout]")
 	flag.StringVar(&logType, "logtype", "stdfiles", "Type of data for elasticsearch index")
