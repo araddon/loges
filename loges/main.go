@@ -7,6 +7,7 @@ import (
 	"github.com/araddon/loges"
 	"github.com/araddon/loges/kafka"
 	tail "github.com/fw42/go-tail"
+	"log"
 	"math"
 	"os"
 	"strings"
@@ -29,6 +30,7 @@ var (
 	maxSize      uint
 	maxMsgCt     uint64
 	colorize     bool
+	_            = log.Ldate
 )
 
 func Usage() {
@@ -74,13 +76,14 @@ func init() {
 func main() {
 	flag.Parse()
 	done := make(chan bool)
-	u.SetupLogging(logLevel)
-	u.SetColorIfTerminal()
+	//u.SetLogger(log.New(os.Stderr, "XXXX", 0), strings.ToLower(logLevel))
+	//u.SetLogger(log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile), strings.ToLower(logLevel))
+	//u.SetColorIfTerminal()
 	esHostName = cleanEsHost(esHostName)
 	if len(flag.Args()) == 0 {
 		source = "stdin"
 	}
-	u.Debugf("Connecting to ES:  %s argct=:%d source=%v", esHostName, len(flag.Args()), source)
+	u.Debugf("LOGES: filter=%s  es=%s argct=:%d source=%v", filter, esHostName, len(flag.Args()), source)
 
 	// Setup output first, to ensure its ready when Source starts
 	switch output {

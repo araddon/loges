@@ -6,6 +6,10 @@ import (
 	"strings"
 )
 
+var (
+	_ = os.DevNull
+)
+
 // read the message channel and send to elastic search
 func ToStdout(msgChan chan *LineEvent, colorize bool) {
 	pos := 0
@@ -18,10 +22,9 @@ func ToStdout(msgChan chan *LineEvent, colorize bool) {
 
 		pos = strings.IndexRune(line, '[')
 		if pos == -1 {
-			os.Stdout.WriteString(line)
-			//os.Stdout.Write([]byte{'\n'})
+			logLevel = u.LogColor[u.DEBUG]
 		} else {
-			if len(line) < pos+6 {
+			if len(line) < pos+1 {
 				continue
 			}
 			switch line[pos+1 : pos+5] {
@@ -35,8 +38,10 @@ func ToStdout(msgChan chan *LineEvent, colorize bool) {
 				logLevel = u.LogColor[u.ERROR]
 			default:
 				//logLevel := u.LogColor[u.ERROR]
+				//println("level not recognized? " + line[pos+1:pos+5])
 			}
-			os.Stdout.WriteString(logLevel + line + "\033[0m")
 		}
+		//u.Debugf("%sabout to print ln:  '%s' len=%d", "\033[0m", line[pos+1:pos+5], len(line))
+		os.Stdout.WriteString(logLevel + line + "\033[0m")
 	}
 }
