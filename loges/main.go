@@ -26,6 +26,7 @@ var (
 	topic        string
 	output       string
 	partitionstr string
+	ttl          string
 	offset       uint64
 	maxSize      uint
 	maxMsgCt     uint64
@@ -71,6 +72,7 @@ func init() {
 	flag.Uint64Var(&offset, "offset", 0, "offset to start consuming from")
 	flag.UintVar(&maxSize, "maxsize", 1048576, "max size in bytes to consume a message set")
 	flag.Uint64Var(&maxMsgCt, "msgct", math.MaxUint64, "max number of messages to read")
+	flag.StringVar(&ttl, "ttl", "30d", "Elasticsearch TTL ")
 }
 
 func main() {
@@ -91,7 +93,7 @@ func main() {
 		// update the Logstash date for the index occasionally
 		go loges.UpdateLogstashIndex()
 		// start an elasticsearch bulk worker, for sending to elasticsearch
-		go loges.ToElasticSearch(msgChan, "golog", esHostName)
+		go loges.ToElasticSearch(msgChan, "golog", esHostName, ttl)
 	case "stdout":
 		u.Error("setting output to stdout ", colorize)
 		go loges.ToStdout(msgChan, colorize)

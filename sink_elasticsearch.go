@@ -9,7 +9,7 @@ import (
 // read the message channel and send to elastic search
 // Uses the background Bulk Indexor, which has the **Possibility** of losing
 // data if app panic/quits (but is much faster than non-bulk)
-func ToElasticSearch(msgChan chan *LineEvent, esType, esHost string) {
+func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string) {
 	// set elasticsearch host which is a global
 	u.Warnf("Starting elasticsearch on %s", esHost)
 	api.Domain = esHost
@@ -21,7 +21,7 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost string) {
 		if msg != nil {
 			//u.Info(msg.String())
 			//IndexBulk(index string, _type string, id string, date *time.Time, data interface{})
-			if err := core.IndexBulk(msg.Index(), esType, msg.Id(), nil, msg); err != nil {
+			if err := core.IndexBulkTtl(msg.Index(), esType, msg.Id(), ttl, nil, msg); err != nil {
 				u.Error("%v", err)
 			}
 		}
