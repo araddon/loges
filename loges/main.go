@@ -77,10 +77,10 @@ func init() {
 
 func main() {
 	flag.Parse()
+	u.SetupLogging(logLevel)
+	u.SetColorIfTerminal()
+
 	done := make(chan bool)
-	//u.SetLogger(log.New(os.Stderr, "XXXX", 0), strings.ToLower(logLevel))
-	//u.SetLogger(log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile), strings.ToLower(logLevel))
-	//u.SetColorIfTerminal()
 	esHostName = cleanEsHost(esHostName)
 	if len(flag.Args()) == 0 {
 		source = "stdin"
