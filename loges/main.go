@@ -85,7 +85,8 @@ func main() {
 	if len(flag.Args()) == 0 {
 		source = "stdin"
 	}
-	u.Debugf("LOGES: filter=%s  es=%s argct=:%d source=%v", filter, esHostName, len(flag.Args()), source)
+	u.Debugf("LOGES: filter=%s  es=%s argct=:%d source=%v ll=%s",
+		filter, esHostName, len(flag.Args()), source, logLevel)
 
 	// Setup output first, to ensure its ready when Source starts
 	switch output {

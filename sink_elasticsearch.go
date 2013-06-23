@@ -34,16 +34,17 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string) {
 			}
 		}
 	}()
-	for errBuf := range indexor.ErrorChannel {
-		errorCt++
-		u.Error(errBuf.Err)
-		// log to disk?  db?   ????  Panic
-	}
+	go func() {
+		for errBuf := range indexor.ErrorChannel {
+			errorCt++
+			u.Error(errBuf.Err)
+			// log to disk?  db?   ????  Panic
+		}
+	}()
 
 	for in := range msgChan {
-		msg := formatter(in)
-		if msg != nil {
-			if err := core.IndexBulkTtl(msg.Index(), esType, msg.Id(), ttl, nil, msg); err != nil {
+		if msg := formatter(in); msg != nil {
+			if err := indexor.Index(msg.Index(), esType, msg.Id(), ttl, nil, msg); err != nil {
 				u.Error("%v", err)
 			}
 		}
