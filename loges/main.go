@@ -3,10 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/ActiveState/tail"
 	u "github.com/araddon/gou"
 	"github.com/araddon/loges"
 	"github.com/araddon/loges/kafka"
-	tail "github.com/fw42/go-tail"
 	"log"
 	"math"
 	"os"
@@ -117,10 +117,12 @@ func main() {
 
 	switch source {
 	case "tail":
-		config := tail.Config{Follow: true, ReOpen: true}
 		for _, filename := range flag.Args() {
-			go loges.TailFile(filename, config, done, msgChan)
+			u.Debug(filename)
+			tailDone := make(chan bool)
+			go loges.TailFile(filename, tail.Config{Follow: true, ReOpen: true}, tailDone, msgChan)
 		}
+		u.Debug("after tail startup")
 	case "kafka":
 		//partitionstr, topic, kafkaHost string, offset, maxMsgCt uint64, maxSize uint
 		go kafka.RunKafkaConsumer(msgChan, partitionstr, topic, kafkaHost, offset, maxMsgCt, maxSize)
@@ -131,7 +133,7 @@ func main() {
 		Usage()
 		os.Exit(1)
 	}
-
+	u.Warn("end of main startup, until done")
 	<-done
 }
 

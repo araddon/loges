@@ -28,7 +28,7 @@ func FileFormatter(logstashType string, tags []string) LineFormatter {
 		} else {
 			logLevel = "NONE"
 		}
-
+		//u.Debug(string(d.Data))
 		//u.Warn(line)
 		if len(line) < 10 {
 			u.Warn(line)
