@@ -1,13 +1,15 @@
-Go Logging Utilitity
+Logging Utility & Daemon
 ---------------------------------
 
-Read log type data from Kafka, Stdin, or Files and then Perform transforms on it
-(Colorize, Transform to Logstash format) and then output to ElasticSearch or Stdout
+Read log data from Inputs [Tail Files, Kafka, Stdin], perform transforms 
+[Combine lines(multi-line-errors)] and output to [ElasticSearch, Stdout]
+Recognize lines with metrics and send to Monitoring [Graphite, Librato, ..]
 
 
 Why?  
 ---------
-I wanted to send data to Elasticsearch for viewing in http://kibana.org/ from within a go app for debugging purposes.  But also wanted to send some log files using http://fluentd as well and choose go instead of native ruby support provided by Fluentd.
+I wanted to send data to Elasticsearch for viewing in http://kibana.org/ and also wanted
+to read from kafka.  http://fluentd does this well but I choose go instead of native ruby support provided by Fluentd.
 
 There are probably better tools out there for this but putting together the 
 specific combination i wanted (LogStash format in Elasticsearch, Tail files, Read Kafka), see alternates below.
@@ -20,10 +22,11 @@ Features
   * Stdio (Can read FluentD format)
   * Kafka
   * Tail Logs (multiple files)
-* **Formatters**:
+* **Transforms**:
    * Logstash http://logstash.net/ 
    * Colorizor for console
-   * custom plugin
+   * Concat into single line when needed (say error stack trace)
+   * custom plugins
 * **Outputs**
    * Stdout
    * Elasticsearch
