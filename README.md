@@ -6,6 +6,8 @@ Read log data from Inputs [Tail Files, Kafka, Stdin], perform transforms
 Recognize lines with metrics and send to Monitoring [Graphite, Librato, ..]
 
 
+![Drawing](https://docs.google.com/drawings/d/1nGVabfy3PB0Zq-gsghKRkGU3eGz4zrcmpIrB0e2cs9M/pub?w=695&h=491)
+
 Why?  
 ---------
 I wanted to send data to Elasticsearch for viewing in http://kibana.org/ and also wanted
