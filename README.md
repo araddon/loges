@@ -42,6 +42,17 @@ Alternates
 * Ruby, http://fluentd.org/
 * JVM, http://logstash.org 
 
+
+Usage
+----------------------
+
+```sh
+loges --source=monit,tail --metrics=graphite \
+   /path/to/my/file \
+   /path/to/another
+```
+
+
 Extending
 ----------------------
 

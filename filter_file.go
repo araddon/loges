@@ -9,7 +9,7 @@ import (
 )
 
 // file format [date source jsonmessage] parser
-func FileFormatter(logstashType string, tags []string) LineFormatter {
+func FileFormatter(logstashType string, tags []string) LineTransform {
 	loc := time.UTC
 	pos := 0
 	posEnd := 0

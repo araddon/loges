@@ -9,9 +9,9 @@ import (
 )
 
 var (
-	esIndex   string
-	formatter LineFormatter
-	hostName  string = "Unknown"
+	esIndex    string
+	transforms        = make([]LineTransform, 0)
+	hostName   string = "Unknown"
 )
 
 func init() {
@@ -22,16 +22,17 @@ func init() {
 
 // Representing data about a line from FluentD
 type LineEvent struct {
-	Data   []byte
-	Source string
-	Offset uint64
-	Item   interface{}
+	Data     []byte
+	DataType string
+	Source   string
+	Offset   uint64
+	Item     interface{}
 }
-type LineFormatter func(*LineEvent) *Event
+type LineTransform func(*LineEvent) *Event
 
-func FormatterSet(lf LineFormatter) {
+func TransformRegister(txform LineTransform) {
 	u.Debug("setting foramtter")
-	formatter = lf
+	transforms = append(transforms, txform)
 }
 
 // update the index occasionally

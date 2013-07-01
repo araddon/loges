@@ -43,10 +43,13 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string) {
 	}()
 
 	u.Debug("Starting MsgChan to ES ", len(msgChan))
+	// TODO, refactor this and stdout one into a "Router"
 	for in := range msgChan {
-		if msg := formatter(in); msg != nil {
-			if err := indexor.Index(msg.Index(), esType, msg.Id(), ttl, nil, msg); err != nil {
-				u.Error("%v", err)
+		for _, transform := range transforms {
+			if msg := transform(in); msg != nil {
+				if err := indexor.Index(msg.Index(), esType, msg.Id(), ttl, nil, msg); err != nil {
+					u.Error("%v", err)
+				}
 			}
 		}
 	}

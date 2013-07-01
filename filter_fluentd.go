@@ -8,7 +8,7 @@ import (
 )
 
 // Fluentd format [date source jsonmessage] parser
-func FluentdFormatter(logstashType string, tags []string) LineFormatter {
+func FluentdFormatter(logstashType string, tags []string) LineTransform {
 	return func(d *LineEvent) *Event {
 		//2012-11-22 05:07:51 +0000 lio.home.ubuntu.log.collect.log.vm2: {"message":"runtime error: close of closed channel"}
 		if lineParts := bytes.SplitN(d.Data, []byte{':', ' '}, 2); len(lineParts) > 1 {

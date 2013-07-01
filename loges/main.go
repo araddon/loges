@@ -15,16 +15,19 @@ import (
 
 var (
 	msgChan      = make(chan *loges.LineEvent, 1000)
+	metricsChan  = make(chan *loges.LineEvent, 1000)
 	esHostName   string
 	logConfig    string
 	logLevel     string
 	logType      string
 	esIndex      string
 	source       string
-	filter       string
+	filters      string
+	httpPort     string
 	kafkaHost    string
 	topic        string
 	output       string
+	metricsOut   string
 	partitionstr string
 	ttl          string
 	offset       uint64
@@ -60,11 +63,13 @@ func init() {
 	flag.Usage = Usage
 	flag.StringVar(&esHostName, "eshost", "localhost", "host (no port) string for the elasticsearch server")
 	flag.StringVar(&logLevel, "loglevel", "DEBUG", "loglevel [NONE,DEBUG,INFO,WARNING,ERROR]")
-	flag.StringVar(&source, "source", "tail", "Data Source for log file/data [stdin,kafka,tail]")
-	flag.StringVar(&filter, "filter", "stdfiles", "Filter to apply [stdfiles,fluentd]")
-	flag.StringVar(&output, "out", "stdout", "Output destiation [elasticsearch, stdout]")
+	flag.StringVar(&source, "source", "tail", "Comma Delimited Data Sources for log file/data [stdin,kafka,tail,monit]")
+	flag.StringVar(&filters, "filter", "stdfiles", "Filter to apply [stdfiles,fluentd]")
+	flag.StringVar(&output, "out", "stdout", "Output destination [elasticsearch, stdout]")
+	flag.StringVar(&metricsOut, "metrics", "", "Output for metrics [librato,graphite,]")
 	flag.StringVar(&logType, "logtype", "stdfiles", "Type of data for elasticsearch index")
 	flag.BoolVar(&colorize, "colorize", true, "Colorize Stdout?")
+	flag.StringVar(&httpPort, "port", "8398", "Port number for http service")
 	// kafka config info
 	flag.StringVar(&kafkaHost, "kafkahost", "localhost:9092", "host:port string for the kafka server")
 	flag.StringVar(&topic, "topic", "test", "topic to publish to")
@@ -78,17 +83,20 @@ func init() {
 func main() {
 	flag.Parse()
 	u.SetupLogging(logLevel)
-	u.SetColorIfTerminal()
+	u.SetColorIfTerminal() // this doesn't work if reading stdin
 
 	done := make(chan bool)
 	esHostName = cleanEsHost(esHostName)
-	if len(flag.Args()) == 0 {
+	// if we have note specified tail files, then assume stdin
+	if len(flag.Args()) == 0 && source == "tail" {
 		source = "stdin"
 	}
-	u.Debugf("LOGES: filter=%s  es=%s argct=:%d source=%v ll=%s",
-		filter, esHostName, len(flag.Args()), source, logLevel)
+
+	u.Debugf("LOGES: filters=%s  es=%s argct=:%d sources=%v ll=%s",
+		filters, esHostName, len(flag.Args()), source, logLevel)
 
 	// Setup output first, to ensure its ready when Source starts
+	// TODO:  suuport multiple outputs?
 	switch output {
 	case "elasticsearch":
 		// update the Logstash date for the index occasionally
@@ -99,39 +107,51 @@ func main() {
 		u.Error("setting output to stdout ", colorize)
 		go loges.ToStdout(msgChan, colorize)
 	default:
-		println("No output set, required")
 		Usage()
 		os.Exit(1)
 	}
 
-	// now set up the formatter/filters
-	//for _, filter := range strings.Split(filters, ",") {}
-	switch filter {
-	case "stdfiles":
-		loges.FormatterSet(loges.FileFormatter(logType, nil))
-	case "fluentd":
-		loges.FormatterSet(loges.FluentdFormatter(logType, nil))
-	case "kafka":
-		loges.FormatterSet(kafka.KafkaFormatter)
-	}
-
-	switch source {
-	case "tail":
-		for _, filename := range flag.Args() {
-			u.Debug(filename)
-			tailDone := make(chan bool)
-			go loges.TailFile(filename, tail.Config{Follow: true, ReOpen: true}, tailDone, msgChan)
+	// TODO:  implement metrics out
+	for _, metOut := range strings.Split(metricsOut, ",") {
+		switch metOut {
+		case "librato":
+			//
+		case "graphite":
+			u.Info("Registering Graphite Transform")
+			loges.TransformRegister(loges.GraphiteTransform())
 		}
-		u.Debug("after tail startup")
-	case "kafka":
-		//partitionstr, topic, kafkaHost string, offset, maxMsgCt uint64, maxSize uint
-		go kafka.RunKafkaConsumer(msgChan, partitionstr, topic, kafkaHost, offset, maxMsgCt, maxSize)
-	case "stdin":
-		go loges.StdinPruducer(msgChan)
-	default: // "stdin"
-		println("No input set, required")
-		Usage()
-		os.Exit(1)
+	}
+
+	// now set up the transforms/filters
+	for _, filter := range strings.Split(filters, ",") {
+		switch filter {
+		case "stdfiles":
+			loges.TransformRegister(loges.FileFormatter(logType, nil))
+		case "fluentd":
+			loges.TransformRegister(loges.FluentdFormatter(logType, nil))
+		case "kafka":
+			loges.TransformRegister(kafka.KafkaFormatter)
+		}
+	}
+
+	for _, sourceInput := range strings.Split(source, ",") {
+		switch sourceInput {
+		case "tail":
+			for _, filename := range flag.Args() {
+				tailDone := make(chan bool)
+				go loges.TailFile(filename, tail.Config{Follow: true, ReOpen: true}, tailDone, msgChan)
+			}
+		case "http":
+			go loges.HttpRun(httpPort, msgChan)
+		case "kafka":
+			go kafka.RunKafkaConsumer(msgChan, partitionstr, topic, kafkaHost, offset, maxMsgCt, maxSize)
+		case "stdin":
+			go loges.StdinPruducer(msgChan)
+		default:
+			println("No input set, required")
+			Usage()
+			os.Exit(1)
+		}
 	}
 	u.Warn("end of main startup, until done")
 	<-done
