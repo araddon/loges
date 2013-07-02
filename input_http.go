@@ -62,7 +62,7 @@ func MakeMonitHandler(msgsOut chan *LineEvent) http.HandlerFunc {
 		}
 		nv, timeNs := MonitParse(data)
 		u.Debug(nv, timeNs)
-		msgsOut <- &LineEvent{Data: []byte(nv.Encode()), Source: "monit"}
+		msgsOut <- &LineEvent{Data: []byte(nv.Encode()), DataType: "METRIC", Source: "monit"}
 	}
 }
 

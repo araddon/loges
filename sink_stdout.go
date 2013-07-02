@@ -48,6 +48,9 @@ func ToStdout(msgChan chan *LineEvent, colorize bool) {
 				}
 				//u.Debugf("%sabout to print ln:  '%s' len=%d", "\033[0m", line[pos+1:pos+5], len(line))
 				os.Stdout.WriteString(logLevel + line + "\033[0m")
+			} else {
+				// first time we see a null message, skip the rest
+				break
 			}
 		}
 	}

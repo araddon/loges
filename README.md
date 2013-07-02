@@ -10,28 +10,34 @@ Recognize lines with metrics and send to Monitoring [Graphite, Librato, ..]
 
 Why?  
 ---------
-I wanted to send data to Elasticsearch for viewing in http://kibana.org/ and also wanted
-to read from kafka.  http://fluentd does this well but I choose go instead of native ruby support provided by Fluentd.
+We had 2 needs:  1) to send data to Elasticsearch for viewing in http://kibana.org/ 
+and 2) if possible, unify the Logging/Metrics systems data-collection-forwarding.  
 
 There are probably better tools out there for this but putting together the 
-specific combination i wanted (LogStash format in Elasticsearch, Tail files, Read Kafka), see alternates below.
+specific combination of: (LogStash format in Elasticsearch, Tail files, 
+Read Kafka, Metrics read from log files) didn't happen, see alternates below.
 
 
 Features
 -----------------
 
 * **Inputs**
-  * Stdio (Can read FluentD format)
+  * Stdin 
   * Kafka
   * Tail Logs (multiple files)
+  * Monit (metrics vi http)
+  * Http  (custom)
 * **Transforms**:
    * Logstash http://logstash.net/ 
    * Colorizor for console
    * Concat into single line when needed (say error stack trace)
    * custom plugins
-* **Outputs**
-   * Stdout
+   * Seperate Metrics Log Lines from regular log lines
+* **Log Line Outputs**
+   * Stdout (optional colorized)
    * Elasticsearch
+* **Metric Outputs**
+   * Graphite
 
 Alternates
 -----------------
@@ -41,7 +47,7 @@ Alternates
 * Go http://blog.mozilla.org/services/2013/04/30/introducing-heka/
 * Ruby, http://fluentd.org/
 * JVM, http://logstash.org 
-
+* Go https://github.com/cloudfoundry/loggregator
 
 Usage
 ----------------------

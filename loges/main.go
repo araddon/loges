@@ -14,27 +14,29 @@ import (
 )
 
 var (
-	msgChan      = make(chan *loges.LineEvent, 1000)
-	metricsChan  = make(chan *loges.LineEvent, 1000)
-	esHostName   string
-	logConfig    string
-	logLevel     string
-	logType      string
-	esIndex      string
-	source       string
-	filters      string
-	httpPort     string
-	kafkaHost    string
-	topic        string
-	output       string
-	metricsOut   string
-	partitionstr string
-	ttl          string
-	offset       uint64
-	maxSize      uint
-	maxMsgCt     uint64
-	colorize     bool
-	_            = log.Ldate
+	msgChan        = make(chan *loges.LineEvent, 1000)
+	metricsChan    = make(chan *loges.LineEvent, 1000)
+	esHostName     string
+	logConfig      string
+	logLevel       string
+	logType        string
+	esIndex        string
+	source         string
+	graphiteHost   string
+	graphitePrefix string
+	filters        string
+	httpPort       string
+	kafkaHost      string
+	topic          string
+	output         string
+	metricsOut     string
+	partitionstr   string
+	ttl            string
+	offset         uint64
+	maxSize        uint
+	maxMsgCt       uint64
+	colorize       bool
+	_              = log.Ldate
 )
 
 func Usage() {
@@ -63,13 +65,15 @@ func init() {
 	flag.Usage = Usage
 	flag.StringVar(&esHostName, "eshost", "localhost", "host (no port) string for the elasticsearch server")
 	flag.StringVar(&logLevel, "loglevel", "DEBUG", "loglevel [NONE,DEBUG,INFO,WARNING,ERROR]")
-	flag.StringVar(&source, "source", "tail", "Comma Delimited Data Sources for log file/data [stdin,kafka,tail,monit]")
+	flag.StringVar(&source, "source", "tail", "Comma Delimited Data Sources for log file/data [stdin,kafka,tail,http] (http=monit)")
 	flag.StringVar(&filters, "filter", "stdfiles", "Filter to apply [stdfiles,fluentd]")
 	flag.StringVar(&output, "out", "stdout", "Output destination [elasticsearch, stdout]")
 	flag.StringVar(&metricsOut, "metrics", "", "Output for metrics [librato,graphite,]")
 	flag.StringVar(&logType, "logtype", "stdfiles", "Type of data for elasticsearch index")
 	flag.BoolVar(&colorize, "colorize", true, "Colorize Stdout?")
 	flag.StringVar(&httpPort, "port", "8398", "Port number for http service")
+	flag.StringVar(&graphiteHost, "graphite", "carbon.hostedgraphite.com:2003", "host for graphite")
+	flag.StringVar(&graphitePrefix, "gprefix", "", "graphite prefix")
 	// kafka config info
 	flag.StringVar(&kafkaHost, "kafkahost", "localhost:9092", "host:port string for the kafka server")
 	flag.StringVar(&topic, "topic", "test", "topic to publish to")
@@ -92,7 +96,7 @@ func main() {
 		source = "stdin"
 	}
 
-	u.Debugf("LOGES: filters=%s  es=%s argct=:%d sources=%v ll=%s",
+	u.Debugf("LOGES: filters=%s  es=%s argct=:%d source=%v ll=%s",
 		filters, esHostName, len(flag.Args()), source, logLevel)
 
 	// Setup output first, to ensure its ready when Source starts
@@ -104,7 +108,7 @@ func main() {
 		// start an elasticsearch bulk worker, for sending to elasticsearch
 		go loges.ToElasticSearch(msgChan, "golog", esHostName, ttl)
 	case "stdout":
-		u.Error("setting output to stdout ", colorize)
+		u.Debug("setting output to stdout ", colorize)
 		go loges.ToStdout(msgChan, colorize)
 	default:
 		Usage()
@@ -118,7 +122,7 @@ func main() {
 			//
 		case "graphite":
 			u.Info("Registering Graphite Transform")
-			loges.TransformRegister(loges.GraphiteTransform())
+			loges.TransformRegister(loges.GraphiteTransform(graphiteHost, graphitePrefix))
 		}
 	}
 
@@ -135,6 +139,7 @@ func main() {
 	}
 
 	for _, sourceInput := range strings.Split(source, ",") {
+		u.Warnf("source = %v", sourceInput)
 		switch sourceInput {
 		case "tail":
 			for _, filename := range flag.Args() {
@@ -148,6 +153,7 @@ func main() {
 		case "stdin":
 			go loges.StdinPruducer(msgChan)
 		default:
+			u.Error(sourceInput)
 			println("No input set, required")
 			Usage()
 			os.Exit(1)

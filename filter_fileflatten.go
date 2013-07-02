@@ -58,6 +58,7 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 					} else {
 						dataType = []byte("NA")
 					}
+					//u.Debugf("dt=%s  data=%s", string(dataType), string(data))
 					msgChan <- &LineEvent{Data: data, DataType: string(dataType), Source: filename}
 				} else {
 					u.Error(err)
