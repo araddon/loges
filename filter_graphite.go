@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -21,7 +22,7 @@ func NewNvMetrics(qs string) (NvMetrics, error) {
 		vals := strings.Split(qs, ",")
 		nv := make(url.Values)
 		for _, val := range vals {
-			if parts := strings.Split(strings.Trim(val, " "), " "); len(parts) == 2 {
+			if parts := strings.Split(strings.Trim(val, " \n\r"), " "); len(parts) == 2 {
 				nv.Set(parts[0], parts[1])
 			}
 		}
@@ -74,6 +75,7 @@ func GraphiteTransform(addr, prefix string) LineTransform {
 		if d.DataType == "METRIC" || d.DataType == "METR" {
 			u.Info("Should be sending to Graphite! ", string(d.Data))
 			line := string(d.Data)
+			tsStr := strconv.FormatInt(time.Now().Unix(), 10)
 			if iMetric := strings.Index(line, d.DataType); iMetric > 0 {
 				line = line[iMetric+len(d.DataType)+1:]
 				line = strings.Trim(line, " ")
@@ -91,13 +93,13 @@ func GraphiteTransform(addr, prefix string) LineTransform {
 				switch metType, val := nv.MetricTypeVal(n); metType {
 				case "avg": // Gauge
 					//n = strings.Replace(n, ".avg", "", -1)
-					if _, err = fmt.Fprintf(buf, "%s%s %s\n", prefix, n, val); err != nil {
+					if _, err = fmt.Fprintf(buf, "%s%s %s\n", prefix, n, val, tsStr); err != nil {
 						u.Error(err)
 						return nil
 					}
 				case "ct":
 					n = strings.Replace(n, ".ct", ".count", -1)
-					if _, err = fmt.Fprintf(buf, "%s%s %s\n", prefix, n, val); err != nil {
+					if _, err = fmt.Fprintf(buf, "%s%s %s\n", prefix, n, val, tsStr); err != nil {
 						u.Error(err)
 						return nil
 					}
