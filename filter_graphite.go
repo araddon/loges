@@ -26,7 +26,7 @@ func NewNvMetrics(qs string) (NvMetrics, error) {
 				nv.Set(parts[0], parts[1])
 			}
 		}
-		u.Debug(qs, " ---- ", nv)
+		//u.Debug(qs, " ---- ", nv)
 		return NvMetrics{nv}, nil
 	}
 	nv, err := url.ParseQuery(qs)
@@ -35,7 +35,7 @@ func NewNvMetrics(qs string) (NvMetrics, error) {
 
 func (uv *NvMetrics) MetricTypeVal(name string) (string, string) {
 	if v := uv.Values.Get(name); len(v) > 0 {
-		u.Debug(name, "---", v)
+		//u.Debug(name, "---", v)
 		if li := strings.LastIndex(name, "."); li > 0 {
 			return name[li+1:], v
 		}
@@ -55,9 +55,9 @@ func GraphiteTransform(addr, prefix string) LineTransform {
 				if err != nil {
 					u.Errorf("Failed to connect to graphite/carbon: %+v", err)
 				} else {
-					u.Infof("Connected graphite to %v", addr)
+					//u.Infof("Connected graphite to %v", addr)
 					mu.Lock()
-					u.Debug(string(buf.Bytes()))
+					//u.Debug(string(buf.Bytes()))
 					io.Copy(conn, buf)
 					mu.Unlock()
 				}
@@ -73,7 +73,7 @@ func GraphiteTransform(addr, prefix string) LineTransform {
 
 	return func(d *LineEvent) *Event {
 		if d.DataType == "METRIC" || d.DataType == "METR" {
-			u.Info("Should be sending to Graphite! ", string(d.Data))
+			//u.Info("Should be sending to Graphite! ", string(d.Data))
 			line := string(d.Data)
 			tsStr := strconv.FormatInt(time.Now().Unix(), 10)
 			if iMetric := strings.Index(line, d.DataType); iMetric > 0 {
@@ -93,13 +93,13 @@ func GraphiteTransform(addr, prefix string) LineTransform {
 				switch metType, val := nv.MetricTypeVal(n); metType {
 				case "avg": // Gauge
 					//n = strings.Replace(n, ".avg", "", -1)
-					if _, err = fmt.Fprintf(buf, "%s%s %s\n", prefix, n, val, tsStr); err != nil {
+					if _, err = fmt.Fprintf(buf, "%s%s %s %s\n", prefix, n, val, tsStr); err != nil {
 						u.Error(err)
 						return nil
 					}
 				case "ct":
 					n = strings.Replace(n, ".ct", ".count", -1)
-					if _, err = fmt.Fprintf(buf, "%s%s %s\n", prefix, n, val, tsStr); err != nil {
+					if _, err = fmt.Fprintf(buf, "%s%s %s %s\n", prefix, n, val, tsStr); err != nil {
 						u.Error(err)
 						return nil
 					}

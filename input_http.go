@@ -60,8 +60,8 @@ func MakeMonitHandler(msgsOut chan *LineEvent) http.HandlerFunc {
 			io.WriteString(w, "Requires valid monit parse")
 			return
 		}
-		nv, timeNs := MonitParse(data)
-		u.Debug(nv, timeNs)
+		nv, _ := MonitParse(data)
+		//u.Debug(nv, timeNs)
 		msgsOut <- &LineEvent{Data: []byte(nv.Encode()), DataType: "METRIC", Source: "monit"}
 	}
 }
