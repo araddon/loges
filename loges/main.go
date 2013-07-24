@@ -70,7 +70,7 @@ func init() {
 	flag.StringVar(&output, "out", "stdout", "Output destination [elasticsearch, stdout]")
 	flag.StringVar(&metricsOut, "metrics", "", "Output for metrics [librato,graphite,]")
 	flag.StringVar(&logType, "logtype", "stdfiles", "Type of data for elasticsearch index")
-	flag.BoolVar(&colorize, "colorize", true, "Colorize Stdout?")
+	flag.BoolVar(&colorize, "colorize", false, "Colorize Stdout?")
 	flag.StringVar(&httpPort, "port", "8398", "Port number for http service")
 	flag.StringVar(&graphiteHost, "graphite", "carbon.hostedgraphite.com:2003", "host for graphite")
 	flag.StringVar(&graphitePrefix, "gprefix", "", "graphite prefix")
@@ -88,6 +88,9 @@ func main() {
 	flag.Parse()
 	u.SetupLogging(logLevel)
 	u.SetColorIfTerminal() // this doesn't work if reading stdin
+	if colorize {
+		u.SetColorOutput()
+	}
 
 	done := make(chan bool)
 	esHostName = cleanEsHost(esHostName)
