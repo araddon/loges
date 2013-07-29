@@ -10,7 +10,7 @@ var (
 	_ = os.DevNull
 )
 
-// read the message channel and send to elastic search
+// read the message channel and send to stdout
 func ToStdout(msgChan chan *LineEvent, colorize bool) {
 
 	pos := 0
