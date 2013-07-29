@@ -1,9 +1,9 @@
 package kafka
 
 import (
+	u "github.com/araddon/gou"
 	kafka "github.com/araddon/kafka/clients/gokafka"
 	"github.com/araddon/loges"
-	log "github.com/ngmoco/timber"
 	"strconv"
 	"strings"
 )
@@ -12,7 +12,7 @@ import (
 func KafkaFormatter(e *loges.LineEvent) *loges.Event {
 	//2012-11-22 05:07:51 +0000 lio.home.ubuntu.log.collect.log.vm2: {"message":"runtime error: close of closed channel"}
 	if ml := strings.SplitN(string(e.Data), ": ", 2); len(ml) > 1 {
-		log.Debug("%v\n", strings.Join(ml, "||"))
+		u.Debugf("%v\n", strings.Join(ml, "||"))
 		if len(ml[0]) > 26 {
 			//d := ml[0][0:25]
 			src := ml[0][26:]
@@ -25,7 +25,7 @@ func KafkaFormatter(e *loges.LineEvent) *loges.Event {
 func RunKafkaConsumer(msgChan chan *loges.LineEvent, partitionstr, topic, kafkaHost string, offset, maxMsgCt uint64, maxSize uint) {
 	var broker *kafka.BrokerConsumer
 
-	log.Info("Connecting to host=%s topic=%s part=%s", kafkaHost, topic, partitionstr)
+	u.Infof("Connecting to host=%s topic=%s part=%s", kafkaHost, topic, partitionstr)
 	parts := strings.Split(partitionstr, ",")
 	if len(parts) > 1 {
 		tps := kafka.NewTopicPartitions(topic, partitionstr, offset, uint32(maxSize))
@@ -48,7 +48,7 @@ func RunKafkaConsumer(msgChan chan *loges.LineEvent, partitionstr, topic, kafkaH
 			//msg.Print()
 			msgChan <- &loges.LineEvent{Data: msg.Payload(), Offset: msg.Offset(), Item: msg}
 		} else {
-			log.Error("No kafka message?")
+			u.Error("No kafka message?")
 			break
 		}
 	}
