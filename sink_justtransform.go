@@ -9,16 +9,16 @@ var (
 )
 
 //just run the transforms
-func RunTransforms(parallel int, msgChan chan *LineEvent, colorize bool) {
+func RunTransforms(parallel int, msgChan chan *LineEvent) {
 
 	for i := 0; i < parallel; i++ {
-		go func(txforms []LineTransform) {
+		go func(mc chan *LineEvent, txforms []LineTransform) {
 			// TODO, refactor this and elasticsearch sink one into a "Router"
-			for in := range msgChan {
+			for in := range mc {
 				for _, transform := range txforms {
 					transform(in)
 				}
 			}
-		}(transforms)
+		}(msgChan, transforms)
 	}
 }
