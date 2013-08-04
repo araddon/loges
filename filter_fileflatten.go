@@ -42,9 +42,11 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 		if pos == -1 && !startsNumeric {
 			// accumulate in buffer, probably/possibly a panic?
 			buf.WriteString(line)
+			buf.WriteByte('\n')
 		} else if !startsNumeric {
 			// accumulate in buffer
 			buf.WriteString(line)
+			buf.WriteByte('\n')
 		} else {
 			// Line had [STUFF] AND had numeric at start
 			if buf.Len() > 0 {
