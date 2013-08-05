@@ -55,7 +55,7 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 				if err == nil {
 					pos = bytes.IndexRune(data, '[')
 					posEnd = bytes.IndexRune(data, ']')
-					if pos > 0 && posEnd > 0 && pos > posEnd && len(data) > pos && len(data) > posEnd {
+					if pos > 0 && posEnd > 0 && pos < posEnd && len(data) > pos && len(data) > posEnd {
 						dataType = data[pos+1 : posEnd]
 					} else {
 						dataType = []byte("NA")
