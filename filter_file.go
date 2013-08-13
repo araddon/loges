@@ -23,7 +23,7 @@ func FileFormatter(logstashType string, tags []string) LineTransform {
 		// Find first square brackets
 		pos = strings.IndexRune(line, '[')
 		posEnd = strings.IndexRune(line, ']')
-		if pos > 0 && posEnd > 0 {
+		if pos > 0 && posEnd > 0 && posEnd > pos && len(line) > posEnd {
 			logLevel = line[pos+1 : posEnd-1]
 		} else {
 			logLevel = "NONE"

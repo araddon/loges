@@ -1,6 +1,7 @@
 package loges
 
 import (
+	"bytes"
 	u "github.com/araddon/gou"
 	"github.com/mattbaird/elastigo/api"
 	"github.com/mattbaird/elastigo/core"
@@ -16,6 +17,10 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string) {
 	api.Domain = esHost
 	done := make(chan bool)
 	indexor := core.NewBulkIndexorErrors(20, 120)
+	indexor.BulkSendor = func(buf *bytes.Buffer) error {
+		//u.Debug(string(buf.Bytes()))
+		return core.BulkSend(buf)
+	}
 	indexor.Run(done)
 
 	errorCt := 0 // use sync.atomic or something if you need
