@@ -1,9 +1,11 @@
 package loges
 
 import (
+	"crypto/md5"
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	u "github.com/araddon/gou"
-	"labix.org/v2/mgo/bson"
 	"os"
 	"time"
 )
@@ -78,7 +80,9 @@ func (e *Event) SetId(id string) {
 }
 func (e *Event) Id() string {
 	if len(e.id) < 1 {
-		e.id = bson.NewObjectId().Hex()
+		md5h := md5.New()
+		md5h.Write([]byte(fmt.Sprintf("%d:%s", e.Timestamp.UnixNano(), e.Message)))
+		e.id = base64.StdEncoding.EncodeToString(md5h.Sum(nil))
 	}
 	return e.id
 }
