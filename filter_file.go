@@ -24,11 +24,11 @@ func FileFormatter(logstashType string, tags []string) LineTransform {
 		pos = strings.IndexRune(line, '[')
 		posEnd = strings.IndexRune(line, ']')
 		if pos > 0 && posEnd > 0 && posEnd > pos && len(line) > posEnd {
-			logLevel = line[pos+1 : posEnd-1]
+			logLevel = line[pos+1 : posEnd]
 		} else {
 			logLevel = "NONE"
 		}
-		//u.Debug(string(d.Data))
+		//u.Debug("dt='%s' line: %s", d.DataType, line)
 		//u.Warn(line)
 		if len(line) < 10 {
 			u.Warn(line)
