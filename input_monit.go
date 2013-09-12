@@ -42,10 +42,21 @@ func FlattenMonit(r *MonitRequest) (url.Values, int64) {
 	for _, s := range r.Services {
 		name := strings.Replace(s.Name, " ", "", -1)
 		name = strings.Replace(name, host, "", -1)
-		m.Set(name+"_cpu.avg", s.Cpu.PercentTotalStr())
-		m.Set(name+"_mem.avg", strconv.Itoa(s.Memory.KilobyteTotal/1024))
-		m.Set(name+"_mempct.avg", s.Memory.PercentTotalStr())
-		ts = int64(s.Ts) * 1e9
+		if s.Type == 3 {
+			m.Set(name+".cpu.avg", s.Cpu.PercentTotalStr())
+			m.Set(name+".mem.avg", strconv.Itoa(s.Memory.KilobyteTotal/1024))
+			m.Set(name+".mempct.avg", s.Memory.PercentTotalStr())
+		} else if s.Type == 0 {
+			m.Set(name+".du.avg", s.Block.PercentTotalStr())
+		} else if s.Type == 5 {
+			// core os/cpu stuff
+			m.Set(name+".cpu.avg", s.Cpu.PercentTotalStr())
+			m.Set(name+".mem.avg", strconv.Itoa(s.Memory.KilobyteTotal/1024))
+			m.Set(name+".mempct.avg", s.Memory.PercentTotalStr())
+		}
+		if ts == 0 {
+			ts = int64(s.Ts) * 1e9
+		}
 	}
 	return m, ts
 }
@@ -91,11 +102,15 @@ func (m *MonitCpu) PercentTotalStr() string {
 }
 
 type MonitService struct {
-	Type   int
-	Name   string `xml:"name,attr"`
-	Ts     int    `xml:"collected_sec"`
-	Tsu    int    `xml:"collected_usec"`
-	Status int
+	Type   int         `xml:"type"` // 0 = filesystem, 3 = service, 5= System(os)
+	Name   string      `xml:"name,attr"`
+	Ts     int         `xml:"collected_sec"`
+	Tsu    int         `xml:"collected_usec"`
+	Status int         `xml:"status"`
+	Memory MonitMemory `xml:"memory"`
+	Cpu    MonitCpu    `xml:"cpu"`
+	Block  MonitBlock  `xml:"block"`
+	INode  MonitBlock  `xml:"inode"`
 	/*Status_hint   int
 	Monitor       int
 	MonitorMode   int
@@ -104,8 +119,6 @@ type MonitService struct {
 	Ppid          int
 	Uptime        int
 	Children      int*/
-	Memory MonitMemory `xml:"memory"`
-	Cpu    MonitCpu    `xml:"cpu"`
 }
 type MonitRequest struct {
 	Id            int            `xml:"id,attr"`
@@ -115,4 +128,20 @@ type MonitRequest struct {
 	Platform      MonitPlatform  `xml:"platform"`
 	Services      []MonitService `xml:"services>service"`
 	ServiceGroups interface{}    `xml:"servicegroups"`
+}
+
+//  <block>
+//     <percent>57.5</percent>
+//     <usage>36786.6</usage>
+//     <total>70127.3</total>
+//  </block>
+type MonitBlock struct {
+	Percent float32 `xml:"percent"`
+	Usage   float32 `xml:"usage"`
+	Total   float32 `xml:"total"`
+}
+
+func (m *MonitBlock) PercentTotalStr() string {
+	//strconv.FormatFloat(service.System.Load.Avg15, 'g', -1, 64), service.Collected_Sec}
+	return strconv.FormatFloat(float64(m.Percent), 'g', -1, 64)
 }

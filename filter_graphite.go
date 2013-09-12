@@ -57,7 +57,7 @@ func GraphiteTransform(addr, prefix string) LineTransform {
 				} else {
 					//u.Infof("Connected graphite to %v", addr)
 					mu.Lock()
-					//u.Debug(string(buf.Bytes()))
+					u.Debug(string(buf.Bytes()))
 					io.Copy(conn, buf)
 					mu.Unlock()
 				}
@@ -73,7 +73,6 @@ func GraphiteTransform(addr, prefix string) LineTransform {
 
 	return func(d *LineEvent) *Event {
 		if d.DataType == "METRIC" || d.DataType == "METR" {
-			//u.Info("Should be sending to Graphite! ", string(d.Data))
 			line := string(d.Data)
 			tsStr := strconv.FormatInt(time.Now().Unix(), 10)
 			if iMetric := strings.Index(line, d.DataType); iMetric > 0 {
@@ -86,6 +85,8 @@ func GraphiteTransform(addr, prefix string) LineTransform {
 				u.Error(err)
 				return nil
 			}
+			host := nv.Get("host")
+			u.Debugf("To Graphite! h='%s'  data=%s", host, string(d.Data))
 			mu.Lock()
 			defer mu.Unlock()
 			// 2.  parse the .avg, .ct and switch
@@ -93,13 +94,13 @@ func GraphiteTransform(addr, prefix string) LineTransform {
 				switch metType, val := nv.MetricTypeVal(n); metType {
 				case "avg": // Gauge
 					//n = strings.Replace(n, ".avg", "", -1)
-					if _, err = fmt.Fprintf(buf, "%s%s %s %s\n", prefix, n, val, tsStr); err != nil {
+					if _, err = fmt.Fprintf(buf, "%s.%s.%s %s %s\n", prefix, host, n, val, tsStr); err != nil {
 						u.Error(err)
 						return nil
 					}
 				case "ct":
 					n = strings.Replace(n, ".ct", ".count", -1)
-					if _, err = fmt.Fprintf(buf, "%s%s %s %s\n", prefix, n, val, tsStr); err != nil {
+					if _, err = fmt.Fprintf(buf, "%s.%s.%s %s %s\n", prefix, host, n, val, tsStr); err != nil {
 						u.Error(err)
 						return nil
 					}

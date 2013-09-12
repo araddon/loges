@@ -99,8 +99,8 @@ func main() {
 		source = "stdin"
 	}
 
-	u.Debugf("LOGES: filters=%s  es=%s argct=:%d source=%v ll=%s",
-		filters, esHostName, len(flag.Args()), source, logLevel)
+	u.Debugf("LOGES: filters=%s  es=%s argct=:%d source=%v ll=%s  args=%v",
+		filters, esHostName, len(flag.Args()), source, logLevel, flag.Args())
 
 	// Setup output first, to ensure its ready when Source starts
 	// TODO:  suuport multiple outputs?
@@ -124,7 +124,7 @@ func main() {
 		case "librato":
 			//
 		case "graphite":
-			u.Info("Registering Graphite Transform")
+			u.Infof("Registering Graphite Transform: host=%s prefix=%s", graphiteHost, graphitePrefix)
 			loges.TransformRegister(loges.GraphiteTransform(graphiteHost, graphitePrefix))
 		}
 	}
