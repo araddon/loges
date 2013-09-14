@@ -24,7 +24,7 @@ func MonitParse(data []byte) (url.Values, int64) {
 		//debug(string(data))
 		err := xml.Unmarshal(data, &r)
 		if err != nil {
-			u.Log(u.ERROR, err)
+			u.Log(u.ERROR, err, string(data))
 			return nil, 0
 		}
 		return FlattenMonit(&r)
