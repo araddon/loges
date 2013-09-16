@@ -110,7 +110,7 @@ type MonitService struct {
 	Memory MonitMemory `xml:"memory"`
 	Cpu    MonitCpu    `xml:"cpu"`
 	Block  MonitBlock  `xml:"block"`
-	INode  MonitBlock  `xml:"inode"`
+	INode  MonitINode  `xml:"inode"`
 	/*Status_hint   int
 	Monitor       int
 	MonitorMode   int
@@ -130,15 +130,31 @@ type MonitRequest struct {
 	ServiceGroups interface{}    `xml:"servicegroups"`
 }
 
-//  <block>
+//  <inode>
 //     <percent>57.5</percent>
 //     <usage>36786.6</usage>
 //     <total>70127.3</total>
-//  </block>
-type MonitBlock struct {
+//  </inode>
+type MonitINode struct {
 	Percent float32 `xml:"percent"`
 	Usage   float32 `xml:"usage"`
 	Total   float32 `xml:"total"`
+}
+
+func (m *MonitINode) PercentTotalStr() string {
+	//strconv.FormatFloat(service.System.Load.Avg15, 'g', -1, 64), service.Collected_Sec}
+	return strconv.FormatFloat(float64(m.Percent), 'g', -1, 64)
+}
+
+//  <block>
+//     <percent>57.5</percent>
+//     <usage>2051.3 MB</usage>
+//     <total>37544.3 MB</total>
+//  </block>
+type MonitBlock struct {
+	Percent float32 `xml:"percent"`
+	Usage   string  `xml:"usage"`
+	Total   string  `xml:"total"`
 }
 
 func (m *MonitBlock) PercentTotalStr() string {
