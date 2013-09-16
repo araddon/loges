@@ -57,7 +57,7 @@ func GraphiteTransform(addr, prefix string) LineTransform {
 				} else {
 					//u.Infof("Connected graphite to %v", addr)
 					mu.Lock()
-					u.Debug(string(buf.Bytes()))
+					//u.Debug(string(buf.Bytes()))
 					io.Copy(conn, buf)
 					mu.Unlock()
 				}
@@ -86,7 +86,10 @@ func GraphiteTransform(addr, prefix string) LineTransform {
 				return nil
 			}
 			host := nv.Get("host")
-			u.Debugf("To Graphite! h='%s'  data=%s", host, string(d.Data))
+			if len(host) == 0 {
+				host = hostName
+			}
+			//u.Debugf("To Graphite! h='%s'  data=%s", host, string(d.Data))
 			mu.Lock()
 			defer mu.Unlock()
 			// 2.  parse the .avg, .ct and switch

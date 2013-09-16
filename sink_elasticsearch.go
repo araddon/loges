@@ -56,7 +56,7 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string) {
 					u.Error("%v", err)
 				}
 			} else {
-				break
+				//break
 			}
 		}
 	}
