@@ -72,9 +72,10 @@ func GraphiteTransform(addr, prefix string) LineTransform {
 	}()
 
 	return func(d *LineEvent) *Event {
+		//u.Debugf("ll=%s   %s", d.DataType, string(d.Data))
 		if d.DataType == "METRIC" || d.DataType == "METR" {
 			line := string(d.Data)
-			tsStr := strconv.FormatInt(time.Now().Unix(), 10)
+			tsStr := strconv.FormatInt(time.Now().In(time.UTC).Unix(), 10)
 			if iMetric := strings.Index(line, d.DataType); iMetric > 0 {
 				line = line[iMetric+len(d.DataType)+1:]
 				line = strings.Trim(line, " ")

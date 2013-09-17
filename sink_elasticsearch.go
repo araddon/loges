@@ -56,7 +56,8 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string) {
 					u.Error("%v", err)
 				}
 			} else {
-				//break
+				//These are ok, just means its not destined for ElasticSearch
+				//u.Debugf("bad es? %v", in)
 			}
 		}
 	}

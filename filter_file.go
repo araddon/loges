@@ -70,7 +70,7 @@ func FileFormatter(logstashType string, tags []string) LineTransform {
 				//u.Debug(evt.String())
 				return evt
 			} else {
-				u.Warn("bad? ", line)
+				//u.Warnf("bad? %s:%s ", logLevel, line)
 			}
 		}
 
