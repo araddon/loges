@@ -2,6 +2,7 @@ package loges
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	u "github.com/araddon/gou"
 	"io"
@@ -42,7 +43,31 @@ func (uv *NvMetrics) MetricTypeVal(name string) (string, string) {
 	}
 	return "", ""
 }
-
+func (uv *NvMetrics) Value(name string) (interface{}, error) {
+	if v := uv.Values.Get(name); len(v) > 0 {
+		//u.Debug(name, "---", v)
+		if li := strings.LastIndex(name, "."); li > 0 {
+			metType := name[li+1:]
+			switch metType {
+			case "avg": // Gauge
+				if f, err := strconv.ParseFloat(v, 64); err == nil {
+					return f, nil
+				} else {
+					u.Error(err)
+					return nil, err
+				}
+			case "ct":
+				if iv, err := strconv.ParseInt(v, 10, 64); err == nil {
+					return iv, nil
+				} else {
+					u.Error(err)
+					return nil, err
+				}
+			}
+		}
+	}
+	return nil, errors.New("not converted")
+}
 func GraphiteTransform(logstashType, addr, prefix string, metricsToEs bool) LineTransform {
 	ticker := time.NewTicker(time.Second * 60)
 	loc := time.UTC
@@ -102,7 +127,11 @@ func GraphiteTransform(logstashType, addr, prefix string, metricsToEs bool) Line
 			// 2.  parse the .avg, .ct and switch
 			for n, _ := range nv.Values {
 				metType, val := nv.MetricTypeVal(n)
-				evt.Fields[n] = val
+				if metVal, err := nv.Value(n); err == nil {
+					evt.Fields[n] = metVal
+				} else {
+					continue
+				}
 				switch metType {
 				case "avg": // Gauge
 					//n = strings.Replace(n, ".avg", "", -1)
