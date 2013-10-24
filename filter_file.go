@@ -28,6 +28,10 @@ func FileFormatter(logstashType string, tags []string) LineTransform {
 		} else {
 			logLevel = "NONE"
 		}
+		// Don't log out These metrics
+		if logLevel == "METRIC" || logLevel == "METR" {
+			return nil
+		}
 		//u.Debugf("dt='%s' line: %s", d.DataType, line)
 		//u.Warn(line)
 		if len(line) < 10 {

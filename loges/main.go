@@ -125,7 +125,7 @@ func main() {
 			//
 		case "graphite":
 			u.Infof("Registering Graphite Transform: host=%s prefix=%s", graphiteHost, graphitePrefix)
-			loges.TransformRegister(loges.GraphiteTransform(graphiteHost, graphitePrefix))
+			loges.TransformRegister(loges.GraphiteTransform(logType, graphiteHost, graphitePrefix, true))
 		}
 	}
 

@@ -43,8 +43,9 @@ func (uv *NvMetrics) MetricTypeVal(name string) (string, string) {
 	return "", ""
 }
 
-func GraphiteTransform(addr, prefix string) LineTransform {
+func GraphiteTransform(logstashType, addr, prefix string, metricsToEs bool) LineTransform {
 	ticker := time.NewTicker(time.Second * 60)
+	loc := time.UTC
 	var mu sync.Mutex
 	buf := &bytes.Buffer{}
 	go func() {
@@ -75,7 +76,7 @@ func GraphiteTransform(addr, prefix string) LineTransform {
 		//u.Debugf("ll=%s   %s", d.DataType, string(d.Data))
 		if d.DataType == "METRIC" || d.DataType == "METR" {
 			line := string(d.Data)
-			tsStr := strconv.FormatInt(time.Now().In(time.UTC).Unix(), 10)
+			tsStr := strconv.FormatInt(time.Now().In(loc).Unix(), 10)
 			if iMetric := strings.Index(line, d.DataType); iMetric > 0 {
 				line = line[iMetric+len(d.DataType)+1:]
 				line = strings.Trim(line, " ")
@@ -90,12 +91,19 @@ func GraphiteTransform(addr, prefix string) LineTransform {
 			if len(host) == 0 {
 				host = hostName
 			}
+
+			evt := NewTsEvent(logstashType, d.Source, line, time.Now().In(loc))
+			evt.Fields = make(map[string]interface{})
+			evt.Fields["host"] = hostName
+			evt.Fields["level"] = d.DataType
 			//u.Debugf("To Graphite! h='%s'  data=%s", host, string(d.Data))
 			mu.Lock()
 			defer mu.Unlock()
 			// 2.  parse the .avg, .ct and switch
 			for n, _ := range nv.Values {
-				switch metType, val := nv.MetricTypeVal(n); metType {
+				metType, val := nv.MetricTypeVal(n)
+				evt.Fields[n] = val
+				switch metType {
 				case "avg": // Gauge
 					//n = strings.Replace(n, ".avg", "", -1)
 					if _, err = fmt.Fprintf(buf, "%s.%s.%s %s %s\n", prefix, host, n, val, tsStr); err != nil {
@@ -111,6 +119,9 @@ func GraphiteTransform(addr, prefix string) LineTransform {
 				default:
 					// ?
 				}
+			}
+			if metricsToEs {
+				return evt
 			}
 		}
 		return nil
