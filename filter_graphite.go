@@ -128,7 +128,8 @@ func GraphiteTransform(logstashType, addr, prefix string, metricsToEs bool) Line
 			for n, _ := range nv.Values {
 				metType, val := nv.MetricTypeVal(n)
 				if metVal, err := nv.Value(n); err == nil {
-					evt.Fields[n] = metVal
+					grapiteName := strings.Replace(n, ".", "_", -1)
+					evt.Fields[grapiteName] = metVal
 				} else {
 					continue
 				}
