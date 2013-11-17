@@ -48,13 +48,14 @@ func UpdateLogstashIndex() {
 
 // A Logstash formatted event
 type Event struct {
-	id        string
-	Source    string                 `json:"@source"`
-	Type      string                 `json:"@type"`
-	Timestamp time.Time              `json:"@timestamp"`
-	Message   string                 `json:"@message"`
-	Tags      []string               `json:"@tags"`
-	Fields    map[string]interface{} `json:"@fields"`
+	id          string
+	Source      string                 `json:"@source"`
+	Type        string                 `json:"@type"`
+	Timestamp   time.Time              `json:"@timestamp"`
+	Message     string                 `json:"@message"`
+	Tags        []string               `json:"@tags,omitempty"`
+	IndexFields map[string]interface{} `json:"@idx,omitempty"`
+	Fields      map[string]interface{} `json:"@fields"`
 }
 
 func NewEvent(eventType, source, message string) *Event {
