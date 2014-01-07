@@ -16,7 +16,7 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string) {
 	u.Warnf("Starting elasticsearch on %s", esHost)
 	api.Domain = esHost
 	done := make(chan bool)
-	indexor := core.NewBulkIndexorErrors(20, 120)
+	indexor := core.NewBulkIndexerErrors(20, 120)
 	indexor.BulkSendor = func(buf *bytes.Buffer) error {
 		//u.Debug(string(buf.Bytes()))
 		return core.BulkSend(buf)
