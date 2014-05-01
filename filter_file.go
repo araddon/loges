@@ -8,6 +8,20 @@ import (
 	"time"
 )
 
+var expectedLevels = map[string]bool{
+	"DEBU":   true,
+	"DEBG":   true,
+	"DEBUG":  true,
+	"INFO":   true,
+	"ERROR":  true,
+	"ERRO":   true,
+	"WARN":   true,
+	"FATAL":  true,
+	"FATA":   true,
+	"METRIC": true,
+	"METR":   true,
+}
+
 // file format [date source jsonmessage] parser
 func FileFormatter(logstashType string, tags []string) LineTransform {
 	loc := time.UTC
@@ -32,6 +46,9 @@ func FileFormatter(logstashType string, tags []string) LineTransform {
 		if logLevel == "METRIC" || logLevel == "METR" {
 			return nil
 		}
+		// if _, ok := expectedLevels[logLevel]; ok {
+		// 	return nil
+		// }
 		//u.Debugf("dt='%s' line: %s", d.DataType, line)
 		//u.Warn(line)
 		if len(line) < 10 {

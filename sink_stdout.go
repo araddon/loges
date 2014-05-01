@@ -1,6 +1,7 @@
 package loges
 
 import (
+	"fmt"
 	u "github.com/araddon/gou"
 	"os"
 	"strings"
@@ -23,7 +24,7 @@ func ToStdout(msgChan chan *LineEvent, colorize bool) {
 
 				line := string(in.Data)
 				pos = strings.IndexRune(line, '[')
-
+				found := true
 				if pos == -1 {
 					logLevel = u.LogColor[u.DEBUG]
 				} else {
@@ -43,11 +44,21 @@ func ToStdout(msgChan chan *LineEvent, colorize bool) {
 						logLevel = "\033[0m\033[37m"
 					default:
 						//logLevel := u.LogColor[u.ERROR]
+						found = false
 						//println("level not recognized? " + line[pos+1:pos+5])
 					}
 				}
 				//u.Debugf("%sabout to print ln:  '%s' len=%d", "\033[0m", line[pos+1:pos+5], len(line))
-				os.Stdout.WriteString(logLevel + line + "\033[0m")
+				if !found {
+					os.Stdout.WriteString(fmt.Sprintf("len=%v  line=%s \n\n\n\n", len(line), line))
+					//os.Stdout.WriteString(logLevel + line + " WAT \033[0m")
+					return
+				} else {
+					os.Stdout.WriteString(logLevel + line + "\033[0m")
+				}
+				if false == true {
+					os.Stdout.WriteString(logLevel + line + "\033[0m")
+				}
 			} else {
 				// first time we see a null message, skip the rest
 				break

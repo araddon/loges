@@ -17,55 +17,85 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 	// Builder used to build the colored string.
 	buf := new(bytes.Buffer)
 
-	startsNumeric := false
+	startsDate := false
 	pos := 0
 	posEnd := 0
 	var dataType []byte
+	var loglevel string
 
 	return func(line string) {
 
-		if len(line) < 1 {
+		if len(line) < 8 {
+			buf.WriteString(line)
 			return
 		}
 
-		startsNumeric = false
+		startsDate = true
 
-		firstRune := line[0]
-		if firstRune >= '0' && firstRune <= '9' {
-			startsNumeric = true
+		for i := 0; i < 4; i++ {
+			r := line[i]
+			if r <= '0' && r >= '9' {
+				startsDate = false
+				break
+			}
 		}
+
 		// Find first square bracket
 		pos = strings.IndexRune(line, '[')
+		posEnd = strings.IndexRune(line, ']')
+		if pos > 0 && posEnd > 0 && pos < posEnd && len(line) > pos && len(line) > posEnd {
+			loglevel = line[pos+1 : posEnd]
+		}
 
-		//u.Debugf("pos=%d datatype=%s num?=%v", pos, dataType, startsNumeric)
-		//u.Infof("numeric?=%v pos=%d len=%d", startsNumeric, pos, len(line))
-		if pos == -1 && !startsNumeric {
+		//u.Debugf("pos=%d datatype=%s num?=%v", pos, dataType, startsDate)
+		//u.Infof("starts with date?=%v pos=%d lvl=%s short[]%v len=%d buf.len=%d", startsDate, pos, loglevel, (posEnd-pos) < 8, len(line), buf.Len())
+		if pos == -1 {
 			// accumulate in buffer, probably/possibly a panic?
 			buf.WriteString(line)
-			//buf.WriteByte('\n')
-		} else if !startsNumeric {
+			return
+		} else if !startsDate {
 			// accumulate in buffer
 			buf.WriteString(line)
-			//buf.WriteByte('\n')
+			return
+		} else if posEnd-8 > pos {
+			// too long
+			buf.WriteString(line)
+			return
+		} else if pos > 80 {
+			// [WARN] should be at beginning of line
+			buf.WriteString(line)
+			return
 		} else {
-			// Line had [STUFF] AND had numeric at start
-			if buf.Len() > 0 {
-				// we already have previous stuff in buffer
-				data, err := ioutil.ReadAll(buf)
-				if err == nil {
-					pos = bytes.IndexRune(data, '[')
-					posEnd = bytes.IndexRune(data, ']')
-					if pos > 0 && posEnd > 0 && pos < posEnd && len(data) > pos && len(data) > posEnd {
-						dataType = data[pos+1 : posEnd]
-					} else {
-						dataType = []byte("NA")
-					}
-					//u.Debugf("ff dt=%s  data=%s", string(dataType), string(data))
-					msgChan <- &LineEvent{Data: data, DataType: string(dataType), Source: filename}
-				} else {
-					u.Error(err)
-				}
+			// Line had [STUFF] AND startsDate at start
+
+			if buf.Len() == 0 {
+				// lets buffer it, ensuring we have the completion of this line
+				buf.WriteString(line)
+				return
 			}
+
+			// we already have previous line in buffer
+			data, err := ioutil.ReadAll(buf)
+			if err == nil {
+				pos = bytes.IndexRune(data, '[')
+				posEnd = bytes.IndexRune(data, ']')
+				if posEnd-8 > pos {
+					//u.Warnf("level:%s  \n\nline=%s", string(data[pos+1:posEnd]), string(data))
+					//buf.WriteString(line)
+					return
+				} else if pos > 0 && posEnd > 0 && pos < posEnd && len(data) > pos && len(data) > posEnd {
+					dataType = data[pos+1 : posEnd]
+				} else {
+					dataType = []byte("NA")
+					//u.Warnf("level:%s  \n\nline=%s", string(data[pos+1:posEnd]), string(data))
+				}
+				//u.Debugf("dt='%s'  data=%s", string(dataType), string(data[0:20]))
+				msgChan <- &LineEvent{Data: data, DataType: string(dataType), Source: filename}
+			} else {
+				u.Error(err)
+			}
+
+			// now write this line for next analysis
 			buf.WriteString(line)
 		}
 	}
