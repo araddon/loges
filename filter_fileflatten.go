@@ -22,9 +22,11 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 	posEnd := 0
 	var dataType []byte
 	var loglevel string
+	datePrefix := []byte("2014")
+	lineCt := 0
 
 	return func(line string) {
-
+		lineCt++
 		if len(line) < 8 {
 			buf.WriteString(line)
 			return
@@ -40,11 +42,15 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 			}
 		}
 
-		// Find first square bracket
+		// Find first square bracket wrapper:   [WARN]
 		pos = strings.IndexRune(line, '[')
 		posEnd = strings.IndexRune(line, ']')
 		if pos > 0 && posEnd > 0 && pos < posEnd && len(line) > pos && len(line) > posEnd {
 			loglevel = line[pos+1 : posEnd]
+			if _, ok := expectedLevels[loglevel]; !ok {
+				buf.WriteString(line)
+				return
+			}
 		}
 
 		//u.Debugf("pos=%d datatype=%s num?=%v", pos, dataType, startsDate)
@@ -88,6 +94,9 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 				} else {
 					dataType = []byte("NA")
 					//u.Warnf("level:%s  \n\nline=%s", string(data[pos+1:posEnd]), string(data))
+				}
+				if !bytes.HasPrefix(data, datePrefix) {
+					u.Warnf("ct=%d level:%s  \n\nline=%s", lineCt, string(data[pos+1:posEnd]), string(data))
 				}
 				//u.Debugf("dt='%s'  data=%s", string(dataType), string(data[0:20]))
 				msgChan <- &LineEvent{Data: data, DataType: string(dataType), Source: filename}

@@ -15,13 +15,13 @@ var (
 func ToStdout(msgChan chan *LineEvent, colorize bool) {
 
 	pos := 0
+	msgCt := 0
 	logLevel := u.LogColor[u.DEBUG]
 
 	// TODO, refactor this and elasticsearch sink one into a "Router"
 	for in := range msgChan {
 		for _, transform := range transforms {
 			if msg := transform(in); msg != nil {
-
 				line := string(in.Data)
 				pos = strings.IndexRune(line, '[')
 				found := true
@@ -50,11 +50,11 @@ func ToStdout(msgChan chan *LineEvent, colorize bool) {
 				}
 				//u.Debugf("%sabout to print ln:  '%s' len=%d", "\033[0m", line[pos+1:pos+5], len(line))
 				if !found {
-					os.Stdout.WriteString(fmt.Sprintf("len=%v  line=%s \n\n\n\n", len(line), line))
+					os.Stdout.WriteString(fmt.Sprintf("%v len=%v  line=%s \n\n\n\n", msgCt, len(line), line))
 					//os.Stdout.WriteString(logLevel + line + " WAT \033[0m")
 					return
 				} else {
-					os.Stdout.WriteString(logLevel + line + "\033[0m")
+					//os.Stdout.WriteString(logLevel + line + "\033[0m")
 				}
 				if false == true {
 					os.Stdout.WriteString(logLevel + line + "\033[0m")
@@ -64,5 +64,6 @@ func ToStdout(msgChan chan *LineEvent, colorize bool) {
 				break
 			}
 		}
+		msgCt++
 	}
 }
