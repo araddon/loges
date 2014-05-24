@@ -95,9 +95,9 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 					dataType = []byte("NA")
 					//u.Warnf("level:%s  \n\nline=%s", string(data[pos+1:posEnd]), string(data))
 				}
-				if !bytes.HasPrefix(data, datePrefix) {
-					u.Warnf("ct=%d level:%s  \n\nline=%s", lineCt, string(data[pos+1:posEnd]), string(data))
-				}
+				// if !bytes.HasPrefix(data, datePrefix) {
+				// 	u.Warnf("ct=%d level:%s  \n\nline=%s", lineCt, string(data[pos+1:posEnd]), string(data))
+				// }
 				//u.Debugf("dt='%s'  data=%s", string(dataType), string(data[0:20]))
 				msgChan <- &LineEvent{Data: data, DataType: string(dataType), Source: filename}
 			} else {
