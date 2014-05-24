@@ -22,7 +22,7 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 	posEnd := 0
 	var dataType []byte
 	var loglevel string
-	datePrefix := []byte("2014")
+	//datePrefix := []byte("2014")
 	lineCt := 0
 
 	return func(line string) {
