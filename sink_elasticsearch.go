@@ -52,7 +52,7 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string) {
 	for in := range msgChan {
 		for _, transform := range transforms {
 			if msg := transform(in); msg != nil {
-				if err := indexor.Index(msg.Index(), esType, msg.Id(), ttl, nil, msg); err != nil {
+				if err := indexor.Index(msg.Index(), esType, msg.Id(), ttl, nil, msg, false); err != nil {
 					u.Error("%v", err)
 				}
 			} else {
