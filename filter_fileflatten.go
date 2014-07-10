@@ -2,6 +2,7 @@ package loges
 
 import (
 	"bytes"
+	"github.com/araddon/dateparse"
 	u "github.com/araddon/gou"
 	"io/ioutil"
 	"strings"
@@ -22,7 +23,7 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 	posEnd := 0
 	var dataType []byte
 	var loglevel string
-	//datePrefix := []byte("2014")
+	var dateStr string
 	lineCt := 0
 
 	return func(line string) {
@@ -32,13 +33,28 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 			return
 		}
 
-		startsDate = true
-
-		for i := 0; i < 4; i++ {
+		startsDate = false
+		spaceCt := 0
+		// for i := 0; i < 4; i++ {
+		// 	r := line[i]
+		// 	if r <= '0' && r >= '9' {
+		// 		startsDate = false
+		// 		break
+		// 	}
+		// }
+		// 2014/07/10 11:04:20.653185 filter_fluentd.go:16: [DEBUG] %s %s
+		for i := 0; i < len(line); i++ {
 			r := line[i]
-			if r <= '0' && r >= '9' {
-				startsDate = false
-				break
+			if r == ' ' {
+				if spaceCt == 1 {
+					dateStr = string(line[:i-1])
+					u.Infof("%s", dateStr)
+					if _, err := dateparse.ParseAny(dateStr); err == nil {
+						startsDate = true
+					}
+					break
+				}
+				spaceCt++
 			}
 		}
 
