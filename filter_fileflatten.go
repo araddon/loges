@@ -35,20 +35,13 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 
 		startsDate = false
 		spaceCt := 0
-		// for i := 0; i < 4; i++ {
-		// 	r := line[i]
-		// 	if r <= '0' && r >= '9' {
-		// 		startsDate = false
-		// 		break
-		// 	}
-		// }
+
 		// 2014/07/10 11:04:20.653185 filter_fluentd.go:16: [DEBUG] %s %s
 		for i := 0; i < len(line); i++ {
 			r := line[i]
 			if r == ' ' {
 				if spaceCt == 1 {
-					dateStr = string(line[:i-1])
-					u.Infof("%s", dateStr)
+					dateStr = string(line[:i])
 					if _, err := dateparse.ParseAny(dateStr); err == nil {
 						startsDate = true
 					}
