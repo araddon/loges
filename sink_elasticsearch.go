@@ -48,6 +48,7 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string) {
 	u.Debug("Starting MsgChan to ES ", len(msgChan))
 	// TODO, refactor this and stdout one into a "Router"
 	for in := range msgChan {
+		u.Infof("%#v", in)
 		for _, transform := range transforms {
 			if msg := transform(in); msg != nil {
 				if err := indexer.Index(msg.Index(), esType, msg.Id(), ttl, nil, msg, false); err != nil {
@@ -55,7 +56,7 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string) {
 				}
 			} else {
 				//These are ok, just means its not destined for ElasticSearch
-				//u.Debugf("bad es? %v", in)
+				u.Debugf("bad es? %v", in)
 			}
 		}
 	}

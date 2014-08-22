@@ -49,7 +49,7 @@ func FileFormatter(logstashType string, tags []string) LineTransform {
 		// if _, ok := expectedLevels[logLevel]; ok {
 		// 	return nil
 		// }
-		//u.Debugf("dt='%s' line: %s", d.DataType, line)
+		u.Debugf("dt='%s' line: %s", d.DataType, line)
 		//u.Warn(line)
 		if len(line) < 10 {
 			u.Warn(line)
