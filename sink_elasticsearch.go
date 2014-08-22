@@ -4,6 +4,7 @@ import (
 	"bytes"
 	u "github.com/araddon/gou"
 	elastigo "github.com/mattbaird/elastigo/lib"
+	"strings"
 	"time"
 )
 
@@ -14,6 +15,8 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string) {
 	// set elasticsearch host which is a global
 	u.Warnf("Starting elasticsearch on %s", esHost)
 	elastigoConn := elastigo.NewConn()
+	// The old standard for host was including :9200
+	esHost = strings.Replace(esHost, ":9200", "", -1)
 	elastigoConn.SetHosts([]string{esHost})
 	indexer := elastigoConn.NewBulkIndexerErrors(10, 120)
 	//indexer := elastigo.NewBulkIndexerErrors(20, 120)
@@ -29,7 +32,7 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string) {
 		for {
 			select {
 			case _ = <-timer.C:
-				if errorCt < 2 {
+				if errorCt < 5 {
 					errorCt = 0
 				} else {
 					panic("Too many errors in ES")
@@ -45,10 +48,9 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string) {
 		}
 	}()
 
-	u.Debug("Starting MsgChan to ES ", len(msgChan))
+	//u.Debug("Starting MsgChan to ES ", len(msgChan))
 	// TODO, refactor this and stdout one into a "Router"
 	for in := range msgChan {
-		u.Infof("%#v", in)
 		for _, transform := range transforms {
 			if msg := transform(in); msg != nil {
 				if err := indexer.Index(msg.Index(), esType, msg.Id(), ttl, nil, msg, false); err != nil {
@@ -56,7 +58,7 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string) {
 				}
 			} else {
 				//These are ok, just means its not destined for ElasticSearch
-				u.Debugf("bad es? %v", in)
+				//u.Debugf("bad es? %v", in)
 			}
 		}
 	}

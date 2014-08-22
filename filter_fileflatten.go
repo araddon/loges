@@ -32,7 +32,7 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 			buf.WriteString(line)
 			return
 		}
-		u.Debugf("line:   %v", line)
+
 		startsDate = false
 		spaceCt := 0
 
@@ -62,7 +62,6 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 			}
 		}
 
-		u.Info("looks good?")
 		//u.Debugf("pos=%d datatype=%s num?=%v", pos, dataType, startsDate)
 		//u.Infof("starts with date?=%v pos=%d lvl=%s short[]%v len=%d buf.len=%d", startsDate, pos, loglevel, (posEnd-pos) < 8, len(line), buf.Len())
 		if pos == -1 {
