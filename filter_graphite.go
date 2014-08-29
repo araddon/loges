@@ -49,14 +49,14 @@ func (uv *NvMetrics) Value(name string) (interface{}, error) {
 		if li := strings.LastIndex(name, "."); li > 0 {
 			metType := name[li+1:]
 			switch metType {
-			case "avg": // Gauge
+			case "avg", "pct": // Gauge, Timer
 				if f, err := strconv.ParseFloat(v, 64); err == nil {
 					return f, nil
 				} else {
 					u.Error(err)
 					return nil, err
 				}
-			case "ct":
+			case "ct", "value":
 				if iv, err := strconv.ParseInt(v, 10, 64); err == nil {
 					return iv, nil
 				} else {
@@ -134,13 +134,13 @@ func GraphiteTransform(logstashType, addr, prefix string, metricsToEs bool) Line
 					continue
 				}
 				switch metType {
-				case "avg": // Gauge
+				case "avg", "pct": // Gauge, Timer
 					//n = strings.Replace(n, ".avg", "", -1)
 					if _, err = fmt.Fprintf(buf, "%s.%s.%s %s %s\n", prefix, host, n, val, tsStr); err != nil {
 						u.Error(err)
 						return nil
 					}
-				case "ct":
+				case "ct", "value":
 					n = strings.Replace(n, ".ct", ".count", -1)
 					if _, err = fmt.Fprintf(buf, "%s.%s.%s %s %s\n", prefix, host, n, val, tsStr); err != nil {
 						u.Error(err)
