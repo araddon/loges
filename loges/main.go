@@ -6,7 +6,6 @@ import (
 	"github.com/ActiveState/tail"
 	u "github.com/araddon/gou"
 	"github.com/araddon/loges"
-	"github.com/araddon/loges/kafka"
 	"log"
 	"math"
 	"os"
@@ -74,12 +73,12 @@ func init() {
 	flag.StringVar(&httpPort, "port", "8398", "Port number for http service")
 	flag.StringVar(&graphiteHost, "graphite", "carbon.hostedgraphite.com:2003", "host for graphite")
 	flag.StringVar(&graphitePrefix, "gprefix", "", "graphite prefix")
-	// kafka config info
-	flag.StringVar(&kafkaHost, "kafkahost", "localhost:9092", "host:port string for the kafka server")
-	flag.StringVar(&topic, "topic", "test", "topic to publish to")
-	flag.StringVar(&partitionstr, "partitions", "0", "partitions to publish to:  comma delimited")
-	flag.Uint64Var(&offset, "offset", 0, "offset to start consuming from")
-	flag.UintVar(&maxSize, "maxsize", 1048576, "max size in bytes to consume a message set")
+	// kafka config info, todo switch to
+	// flag.StringVar(&kafkaHost, "kafkahost", "localhost:9092", "host:port string for the kafka server")
+	// flag.StringVar(&topic, "topic", "test", "topic to publish to")
+	// flag.StringVar(&partitionstr, "partitions", "0", "partitions to publish to:  comma delimited")
+	// flag.Uint64Var(&offset, "offset", 0, "offset to start consuming from")
+	// flag.UintVar(&maxSize, "maxsize", 1048576, "max size in bytes to consume a message set")
 	flag.Uint64Var(&maxMsgCt, "msgct", math.MaxUint64, "max number of messages to read")
 	flag.StringVar(&ttl, "ttl", "30d", "Elasticsearch TTL ")
 }
@@ -121,8 +120,8 @@ func main() {
 	// TODO:  implement metrics out
 	for _, metOut := range strings.Split(metricsOut, ",") {
 		switch metOut {
-		case "librato":
-			//
+		case "influxdb":
+			// todo
 		case "graphite":
 			u.Infof("Registering Graphite Transform: host=%s prefix=%s", graphiteHost, graphitePrefix)
 			loges.TransformRegister(loges.GraphiteTransform(logType, graphiteHost, graphitePrefix, true))
@@ -137,7 +136,8 @@ func main() {
 		case "fluentd":
 			loges.TransformRegister(loges.FluentdFormatter(logType, nil))
 		case "kafka":
-			loges.TransformRegister(kafka.KafkaFormatter)
+			// TODO, finish conversion to sarama
+			//loges.TransformRegister(kafka.KafkaFormatter)
 		}
 	}
 
@@ -151,8 +151,8 @@ func main() {
 			}
 		case "http":
 			go loges.HttpRun(httpPort, msgChan)
-		case "kafka":
-			go kafka.RunKafkaConsumer(msgChan, partitionstr, topic, kafkaHost, offset, maxMsgCt, maxSize)
+		//case "kafka":
+		//	go kafka.RunKafkaConsumer(msgChan, partitionstr, topic, kafkaHost, offset, maxMsgCt, maxSize)
 		case "stdin":
 			go loges.StdinPruducer(msgChan)
 		default:
