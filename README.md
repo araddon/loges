@@ -25,21 +25,21 @@ Features
   * Stdin 
   * Kafka
   * Tail Logs (multiple files)
-  * Monit (metrics vi http)
+  * Monit (metrics via http)
   * Http  (custom)
 * **Transforms**:
    * Logstash http://logstash.net/ 
-   * Colorizor for console
-   * Concat into single line when needed (say error stack trace)
-   * custom plugins
-   * Seperate Metrics Log Lines from regular log lines
+   * Colorizer for console
+   * Concat into single line when needed (e.g. error stack trace)
+   * Separate Metrics Log Lines from regular log lines
+   * Custom plugins
 * **Log Line Outputs**
    * Stdout (optional colorized)
    * Elasticsearch
 * **Metric Outputs**
    * Graphite
 
-Alternates
+Alternatives
 -----------------
 
 * Go https://github.com/onemorecloud/dendrite
