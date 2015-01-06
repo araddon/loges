@@ -56,12 +56,23 @@ func (uv *NvMetrics) Value(name string) (interface{}, error) {
 					u.Error(err)
 					return nil, err
 				}
-			case "ct", "value":
+			case "ct":
 				if iv, err := strconv.ParseInt(v, 10, 64); err == nil {
 					return iv, nil
 				} else {
-					u.Error(err)
+					u.Errorf(`Could not parse integer for   "%v.ct" v=%v`, name, v)
 					return nil, err
+				}
+			case "value":
+				if fv, err := strconv.ParseFloat(v, 64); err == nil {
+					return int64(fv), nil
+				} else {
+					if iv, err := strconv.ParseInt(v, 10, 64); err == nil {
+						return iv, nil
+					} else {
+						u.Errorf(`Could not parse integer or float for   "%v.ct" v=%v`, name, v)
+						return nil, err
+					}
 				}
 			}
 		}
@@ -140,14 +151,21 @@ func GraphiteTransform(logstashType, addr, prefix string, metricsToEs bool) Line
 						u.Error(err)
 						return nil
 					}
-				case "ct", "value":
+				case "ct":
 					n = strings.Replace(n, ".ct", ".count", -1)
 					if _, err = fmt.Fprintf(buf, "%s.%s.%s %s %s\n", prefix, host, n, val, tsStr); err != nil {
 						u.Error(err)
 						return nil
 					}
+				case "value":
+					n = strings.Replace(n, ".value", ".last", -1)
+					if _, err = fmt.Fprintf(buf, "%s.%s.%s %s %s\n", prefix, host, n, val, tsStr); err != nil {
+						u.Warnf("Could not convert value:  %v:%v", n, val)
+						//return nil
+					}
 				default:
 					// ?
+					u.Warnf("could not recognize: %v", line)
 				}
 			}
 			if metricsToEs {
