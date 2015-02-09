@@ -60,8 +60,12 @@ func (uv *NvMetrics) Value(name string) (interface{}, error) {
 				if iv, err := strconv.ParseInt(v, 10, 64); err == nil {
 					return iv, nil
 				} else {
-					u.Errorf(`Could not parse integer for   "%v.ct" v=%v`, name, v)
-					return nil, err
+					if f, err := strconv.ParseFloat(v, 64); err == nil {
+						return int64(f), nil
+					} else {
+						u.Errorf(`Could not parse integer or float for   "%v.ct" v=%v`, name, v)
+						return nil, err
+					}
 				}
 			case "value":
 				if fv, err := strconv.ParseFloat(v, 64); err == nil {
