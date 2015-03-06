@@ -67,22 +67,22 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 		if pos == -1 {
 			// accumulate in buffer, probably/possibly a panic?
 			buf.WriteString(line)
-			buf.WriteByte('\n')
+			buf.WriteString("\\n")
 			return
 		} else if !startsDate {
 			// accumulate in buffer
 			buf.WriteString(line)
-			buf.WriteByte('\n')
+			buf.WriteString("\\n")
 			return
 		} else if posEnd-8 > pos {
 			// position of [block]  too long, so ignore
 			buf.WriteString(line)
-			buf.WriteByte('\n')
+			buf.WriteString("\\n")
 			return
 		} else if pos > 80 {
 			// [WARN] should be at beginning of line
 			buf.WriteString(line)
-			buf.WriteByte('\n')
+			buf.WriteString("\\n")
 			return
 		} else {
 			// Line had [STUFF] AND startsDate at start
