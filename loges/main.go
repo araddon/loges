@@ -35,6 +35,7 @@ var (
 	maxSize        uint
 	maxMsgCt       uint64
 	colorize       bool
+	metricsToEs    bool
 	_              = log.Ldate
 )
 
@@ -68,6 +69,7 @@ func init() {
 	flag.StringVar(&filters, "filter", "stdfiles", "Filter to apply [stdfiles,fluentd]")
 	flag.StringVar(&output, "out", "stdout", "Output destination [elasticsearch, stdout]")
 	flag.StringVar(&metricsOut, "metrics", "", "Output for metrics [librato,graphite,]")
+	flag.BoolVar(&metricsToEs, "metricstoes", false, "Send Metrics To Elasticsearch as well as graphite?")
 	flag.StringVar(&logType, "logtype", "stdfiles", "Type of data for elasticsearch index")
 	flag.BoolVar(&colorize, "colorize", false, "Colorize Stdout?")
 	flag.StringVar(&httpPort, "port", "8398", "Port number for http service")
@@ -108,7 +110,7 @@ func main() {
 		// update the Logstash date for the index occasionally
 		go loges.UpdateLogstashIndex()
 		// start an elasticsearch bulk worker, for sending to elasticsearch
-		go loges.ToElasticSearch(msgChan, "golog", esHostName, ttl)
+		go loges.ToElasticSearch(msgChan, "golog", esHostName, ttl, metricsToEs)
 	case "stdout":
 		u.Debug("setting output to stdout ", colorize)
 		go loges.ToStdout(msgChan, colorize)

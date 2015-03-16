@@ -25,8 +25,8 @@ func init() {
 // Representing data about a line from FluentD
 type LineEvent struct {
 	Data     []byte
-	DataType string
-	Source   string
+	DataType string // DataType , probably should be called loglevel [METRIC, INFO,  DEBUG]
+	Source   string // Source = filename if file, else monit, etc
 	Offset   uint64
 	Item     interface{}
 }

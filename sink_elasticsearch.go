@@ -11,7 +11,7 @@ import (
 // read the message channel and send to elastic search
 // Uses the background Bulk Indexor, which has the **Possibility** of losing
 // data if app panic/quits (but is much faster than non-bulk)
-func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string) {
+func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string, sendMetrics bool) {
 	// set elasticsearch host which is a global
 	u.Warnf("Starting elasticsearch on %s", esHost)
 	elastigoConn := elastigo.NewConn()
@@ -51,6 +51,9 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string) {
 	//u.Debug("Starting MsgChan to ES ", len(msgChan))
 	// TODO, refactor this and stdout one into a "Router"
 	for in := range msgChan {
+		if !sendMetrics && (in.DataType == "METRIC" || in.DataType == "METR") {
+			continue
+		}
 		for _, transform := range transforms {
 			if msg := transform(in); msg != nil {
 				if err := indexer.Index(msg.Index(), esType, msg.Id(), ttl, nil, msg, false); err != nil {
