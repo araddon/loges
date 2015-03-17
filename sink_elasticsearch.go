@@ -51,11 +51,11 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string, sendMe
 	//u.Debug("Starting MsgChan to ES ", len(msgChan))
 	// TODO, refactor this and stdout one into a "Router"
 	for in := range msgChan {
-		if !sendMetrics && (in.DataType == "METRIC" || in.DataType == "METR") {
-			continue
-		}
 		for _, transform := range transforms {
 			if msg := transform(in); msg != nil {
+				if !sendMetrics && (in.DataType == "METRIC" || in.DataType == "METR") {
+					continue
+				}
 				if err := indexer.Index(msg.Index(), esType, msg.Id(), ttl, nil, msg, false); err != nil {
 					u.Error("%v", err)
 				}
