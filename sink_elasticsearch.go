@@ -2,10 +2,11 @@ package loges
 
 import (
 	"bytes"
-	u "github.com/araddon/gou"
-	elastigo "github.com/mattbaird/elastigo/lib"
 	"strings"
 	"time"
+
+	u "github.com/araddon/gou"
+	elastigo "github.com/mattbaird/elastigo/lib"
 )
 
 // read the message channel and send to elastic search
@@ -22,16 +23,18 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string, sendMe
 	//indexer := elastigo.NewBulkIndexerErrors(20, 120)
 	indexer.Sender = func(buf *bytes.Buffer) error {
 		//u.Debug(string(buf.Bytes()))
+		u.Infof("es writing: %d bytes", buf.Len())
 		return indexer.Send(buf)
 	}
 	indexer.Start()
 
 	errorCt := 0 // use sync.atomic or something if you need
-	timer := time.NewTicker(time.Minute * 1)
+	timer := time.NewTicker(time.Minute * 2)
 	go func() {
 		for {
 			select {
 			case _ = <-timer.C:
+				u.Infof("errorCt: %d", errorCt)
 				if errorCt < 5 {
 					errorCt = 0
 				} else {
