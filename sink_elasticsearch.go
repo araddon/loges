@@ -39,6 +39,7 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string,
 	errorCt := 0 // use sync.atomic or something if you need
 	timer := time.NewTicker(time.Minute * 1)
 	lastMsgTime := time.Now()
+	msgCt := 0
 	go func() {
 		for {
 			select {
@@ -57,8 +58,11 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string,
 
 				if checkForMsgs {
 					if time.Now().After(lastMsgTime.Add(exitIfNoMsgs)) {
-						u.Errorf("We have not seen a message since %d secs ago, exiting: %v", time.Now().Sub(lastMsgTime).Seconds())
+						u.Errorf("We have not seen a message since %v secs ago, exiting: msgs:%v lastmsg:%v",
+							time.Now().Sub(lastMsgTime), msgCt, lastMsgTime)
 						os.Exit(1)
+					} else {
+						u.Infof("just processed %v msgs %v", msgCt, lastMsgTime)
 					}
 				}
 			}
@@ -83,6 +87,7 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string,
 					}
 				} else {
 					lastMsgTime = time.Now()
+					msgCt += 1
 				}
 
 				if err := indexer.Index(msg.Index(), esType, msg.Id(), ttl, nil, msg, false); err != nil {
