@@ -2,16 +2,26 @@ package loges
 
 import (
 	"bytes"
-	u "github.com/araddon/gou"
-	elastigo "github.com/mattbaird/elastigo/lib"
+	"os"
 	"strings"
 	"time"
+
+	u "github.com/araddon/gou"
+	elastigo "github.com/mattbaird/elastigo/lib"
 )
 
 // read the message channel and send to elastic search
 // Uses the background Bulk Indexor, which has the **Possibility** of losing
 // data if app panic/quits (but is much faster than non-bulk)
-func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string, sendMetrics bool) {
+//  @exitIfNoMsgs :  Should we panic if we don't see messages after this duration?
+func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string,
+	exitIfNoMsgs time.Duration, sendMetrics bool) {
+
+	checkForMsgs := false
+	if exitIfNoMsgs.Seconds() > 0 {
+		checkForMsgs = true
+	}
+
 	// set elasticsearch host which is a global
 	u.Warnf("Starting elasticsearch on %s", esHost)
 	elastigoConn := elastigo.NewConn()
@@ -28,14 +38,28 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string, sendMe
 
 	errorCt := 0 // use sync.atomic or something if you need
 	timer := time.NewTicker(time.Minute * 1)
+	lastMsgTime := time.Now()
 	go func() {
 		for {
 			select {
 			case _ = <-timer.C:
 				if errorCt < 5 {
+					// We reset errors back to 0, if we didn't climb too high
+					// so that they don't continually grow
 					errorCt = 0
 				} else {
-					panic("Too many errors in ES")
+					// If we can't write to ES, really not much else we can do
+					// here other than panic, sending possibly an alert to
+					// our monit?
+					u.Errorf("We have too many errors, exiting: %v", errorCt)
+					os.Exit(1)
+				}
+
+				if checkForMsgs {
+					if time.Now().After(lastMsgTime.Add(exitIfNoMsgs)) {
+						u.Errorf("We have not seen a message since %d secs ago, exiting: %v", time.Now().Sub(lastMsgTime).Seconds())
+						os.Exit(1)
+					}
 				}
 			}
 		}
@@ -53,9 +77,14 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string, sendMe
 	for in := range msgChan {
 		for _, transform := range transforms {
 			if msg := transform(in); msg != nil {
-				if !sendMetrics && (in.DataType == "METRIC" || in.DataType == "METR") {
-					continue
+				if in.DataType == "METRIC" || in.DataType == "METR" {
+					if !sendMetrics {
+						continue
+					}
+				} else {
+					lastMsgTime = time.Now()
 				}
+
 				if err := indexer.Index(msg.Index(), esType, msg.Id(), ttl, nil, msg, false); err != nil {
 					u.Error("%v", err)
 				}
