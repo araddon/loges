@@ -32,18 +32,20 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string,
 	//indexer := elastigo.NewBulkIndexerErrors(20, 120)
 	indexer.Sender = func(buf *bytes.Buffer) error {
 		//u.Debug(string(buf.Bytes()))
+		u.Infof("es writing: %d bytes", buf.Len())
 		return indexer.Send(buf)
 	}
 	indexer.Start()
 
 	errorCt := 0 // use sync.atomic or something if you need
-	timer := time.NewTicker(time.Minute * 1)
+	timer := time.NewTicker(time.Minute * 2)
 	lastMsgTime := time.Now()
 	msgCt := 0
 	go func() {
 		for {
 			select {
 			case _ = <-timer.C:
+				u.Infof("errorCt: %d", errorCt)
 				if errorCt < 5 {
 					// We reset errors back to 0, if we didn't climb too high
 					// so that they don't continually grow
