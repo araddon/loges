@@ -3,40 +3,43 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/ActiveState/tail"
-	u "github.com/araddon/gou"
-	"github.com/araddon/loges"
 	"log"
 	"math"
 	"os"
 	"strings"
+	"time"
+
+	"github.com/ActiveState/tail"
+	u "github.com/araddon/gou"
+	"github.com/araddon/loges"
 )
 
 var (
-	msgChan        = make(chan *loges.LineEvent, 1000)
-	metricsChan    = make(chan *loges.LineEvent, 1000)
-	esHostName     string
-	logConfig      string
-	logLevel       string
-	logType        string
-	esIndex        string
-	source         string
-	graphiteHost   string
-	graphitePrefix string
-	filters        string
-	httpPort       string
-	kafkaHost      string
-	topic          string
-	output         string
-	metricsOut     string
-	partitionstr   string
-	ttl            string
-	offset         uint64
-	maxSize        uint
-	maxMsgCt       uint64
-	colorize       bool
-	metricsToEs    bool
-	_              = log.Ldate
+	msgChan         = make(chan *loges.LineEvent, 1000)
+	metricsChan     = make(chan *loges.LineEvent, 1000)
+	esHostName      string
+	logConfig       string
+	logLevel        string
+	logType         string
+	esIndex         string
+	source          string
+	graphiteHost    string
+	graphitePrefix  string
+	filters         string
+	httpPort        string
+	kafkaHost       string
+	topic           string
+	output          string
+	metricsOut      string
+	partitionstr    string
+	ttl             string
+	offset          uint64
+	maxSize         uint
+	maxMsgCt        uint64
+	colorize        bool
+	metricsToEs     bool
+	exitIfNoMsgsDur time.Duration
+	_               = log.Ldate
 )
 
 func Usage() {
@@ -83,6 +86,7 @@ func init() {
 	// flag.UintVar(&maxSize, "maxsize", 1048576, "max size in bytes to consume a message set")
 	flag.Uint64Var(&maxMsgCt, "msgct", math.MaxUint64, "max number of messages to read")
 	flag.StringVar(&ttl, "ttl", "30d", "Elasticsearch TTL ")
+	flag.DurationVar(&exitIfNoMsgsDur, "exitifnomsgs", time.Minute*60, "If we have not seen a message in this long, exit")
 }
 
 func main() {
@@ -110,7 +114,7 @@ func main() {
 		// update the Logstash date for the index occasionally
 		go loges.UpdateLogstashIndex()
 		// start an elasticsearch bulk worker, for sending to elasticsearch
-		go loges.ToElasticSearch(msgChan, "golog", esHostName, ttl, metricsToEs)
+		go loges.ToElasticSearch(msgChan, "golog", esHostName, ttl, exitIfNoMsgsDur, metricsToEs)
 	case "stdout":
 		u.Debug("setting output to stdout ", colorize)
 		go loges.ToStdout(msgChan, colorize)
