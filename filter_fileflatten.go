@@ -2,10 +2,11 @@ package loges
 
 import (
 	"bytes"
-	"github.com/araddon/dateparse"
-	u "github.com/araddon/gou"
 	"io/ioutil"
 	"strings"
+
+	"github.com/araddon/dateparse"
+	u "github.com/araddon/gou"
 )
 
 // This formatter reads go files and performs:
@@ -112,7 +113,7 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 				// 	u.Warnf("ct=%d level:%s  \n\nline=%s", lineCt, string(data[pos+1:posEnd]), string(data))
 				// }
 				//u.Debugf("dt='%s'  data=%s", string(dataType), string(data[0:20]))
-				msgChan <- &LineEvent{Data: data, DataType: string(dataType), Source: filename}
+				msgChan <- &LineEvent{Data: data, DataType: string(dataType), Source: filename, WriteErrs: 0}
 			} else {
 				u.Error(err)
 			}

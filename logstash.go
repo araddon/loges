@@ -5,9 +5,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	u "github.com/araddon/gou"
 	"os"
 	"time"
+
+	u "github.com/araddon/gou"
 )
 
 var (
@@ -24,11 +25,12 @@ func init() {
 
 // Representing data about a line from FluentD
 type LineEvent struct {
-	Data     []byte
-	DataType string // DataType , probably should be called loglevel [METRIC, INFO,  DEBUG]
-	Source   string // Source = filename if file, else monit, etc
-	Offset   uint64
-	Item     interface{}
+	Data      []byte
+	DataType  string // DataType , probably should be called loglevel [METRIC, INFO,  DEBUG]
+	Source    string // Source = filename if file, else monit, etc
+	Offset    uint64
+	Item      interface{}
+	WriteErrs uint16
 }
 type LineTransform func(*LineEvent) *Event
 
