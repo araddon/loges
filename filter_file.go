@@ -3,9 +3,10 @@ package loges
 import (
 	//"bytes"
 	//"encoding/json"
-	u "github.com/araddon/gou"
 	"strings"
 	"time"
+
+	u "github.com/araddon/gou"
 )
 
 var expectedLevels = map[string]bool{
@@ -65,6 +66,7 @@ func FileFormatter(logstashType string, tags []string) LineTransform {
 						evt.Fields = make(map[string]interface{})
 						evt.Fields["host"] = hostName
 						evt.Fields["level"] = logLevel
+						evt.Fields["WriteErrs"] = d.WriteErrs
 						//evt.Fields = msg
 						//evt.Source = d.Source
 						//u.Debug(evt.String())
@@ -76,6 +78,7 @@ func FileFormatter(logstashType string, tags []string) LineTransform {
 						evt.Fields = make(map[string]interface{})
 						evt.Fields["host"] = hostName
 						evt.Fields["level"] = logLevel
+						evt.Fields["WriteErrs"] = d.WriteErrs
 						//evt.Fields = msg
 						//evt.Source = d.Source
 						//u.Debug(evt.String())
@@ -86,6 +89,7 @@ func FileFormatter(logstashType string, tags []string) LineTransform {
 				evt.Fields = make(map[string]interface{})
 				evt.Fields["host"] = hostName
 				evt.Fields["level"] = logLevel
+				evt.Fields["WriteErrs"] = d.WriteErrs
 				//evt.Fields = msg
 				//evt.Source = d.Source
 				//u.Debug(evt.String())

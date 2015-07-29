@@ -71,7 +71,7 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string,
 	go func() {
 		for errBuf := range indexer.ErrorChannel {
 			errorCt++
-			u.Error(errBuf.Err)
+			u.Errorf("ES Indexer Err: %v\n", errBuf.Err)
 			// log to disk?  db?   ????  Panic
 		}
 	}()
@@ -91,7 +91,11 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string,
 				}
 
 				if err := indexer.Index(msg.Index(), esType, msg.Id(), ttl, nil, msg, false); err != nil {
-					u.Error("%v", err)
+					u.Errorf("Index(ing) error: %v\n", err)
+
+					//Increment WriteErrs log and requeue message
+					in.WriteErrs += 1
+					msgChan <- in
 				}
 			} else {
 				//These are ok, just means its not destined for ElasticSearch
