@@ -1,7 +1,7 @@
 Logging Utility & Daemon
 ---------------------------------
 
-Read log data from Inputs [Tail Files, Kafka, Stdin], perform transforms 
+Read log data from Inputs [Tail Files, Stdin, Monit], perform transforms 
 [Combine lines(multi-line-errors)] and output to [ElasticSearch, Stdout]
 Recognize lines with metrics and send to Monitoring [Graphite, Librato, ..]
 
@@ -23,7 +23,6 @@ Features
 
 * **Inputs**
   * Stdin 
-  * Kafka
   * Tail Logs (multiple files)
   * Monit (metrics via http)
   * Http  (custom)
@@ -42,6 +41,7 @@ Features
 Alternatives
 -----------------
 
+* Go https://github.com/gliderlabs/logspout
 * Go https://github.com/onemorecloud/dendrite
 * Go https://github.com/ryandotsmith/l2met
 * Go http://blog.mozilla.org/services/2013/04/30/introducing-heka/

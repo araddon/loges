@@ -20,6 +20,7 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 	buf := new(bytes.Buffer)
 
 	startsDate := false
+	prevWasDate := false
 	pos := 0
 	posEnd := 0
 	var dataType []byte
@@ -64,27 +65,23 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 		}
 
 		//u.Debugf("pos=%d datatype=%s num?=%v", pos, dataType, startsDate)
-		//u.Infof("starts with date?=%v pos=%d lvl=%s short[]%v len=%d buf.len=%d", startsDate, pos, loglevel, (posEnd-pos) < 8, len(line), buf.Len())
-		if pos == -1 {
+		//u.Infof("starts with date?=%v prev?%v pos=%d lvl=%s short[]%v len=%d buf.len=%d", startsDate, prevWasDate, pos, loglevel, (posEnd-pos) < 8, len(line), buf.Len())
+		if pos == -1 && !prevWasDate {
 			// accumulate in buffer, probably/possibly a panic?
 			buf.WriteString(line)
 			buf.WriteString(" \n")
-			return
 		} else if !startsDate {
 			// accumulate in buffer
 			buf.WriteString(line)
 			buf.WriteString(" \n")
-			return
 		} else if posEnd-8 > pos {
 			// position of [block]  too long, so ignore
 			buf.WriteString(line)
 			buf.WriteString(" \n")
-			return
 		} else if pos > 80 {
 			// [WARN] should be at beginning of line
 			buf.WriteString(line)
 			buf.WriteString(" \n")
-			return
 		} else {
 			// Line had [STUFF] AND startsDate at start
 
@@ -114,12 +111,13 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 				// }
 				//u.Debugf("dt='%s'  data=%s", string(dataType), string(data[0:20]))
 				msgChan <- &LineEvent{Data: data, DataType: string(dataType), Source: filename, WriteErrs: 0}
+
 			} else {
 				u.Error(err)
 			}
-
 			// now write this line for next analysis
 			buf.WriteString(line)
 		}
+		prevWasDate = startsDate
 	}
 }
