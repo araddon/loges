@@ -32,7 +32,7 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string,
 	//indexer := elastigo.NewBulkIndexerErrors(20, 120)
 	indexer.Sender = func(buf *bytes.Buffer) error {
 		//u.Debug(string(buf.Bytes()))
-		u.Infof("es writing: %d bytes", buf.Len())
+		//u.Infof("es writing: %d bytes", buf.Len())
 		return indexer.Send(buf)
 	}
 	indexer.Start()

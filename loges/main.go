@@ -86,7 +86,7 @@ func init() {
 	// flag.UintVar(&maxSize, "maxsize", 1048576, "max size in bytes to consume a message set")
 	flag.Uint64Var(&maxMsgCt, "msgct", math.MaxUint64, "max number of messages to read")
 	flag.StringVar(&ttl, "ttl", "30d", "Elasticsearch TTL ")
-	flag.DurationVar(&exitIfNoMsgsDur, "exitifnomsgs", time.Minute*60, "If we have not seen a message in this long, exit")
+	flag.DurationVar(&exitIfNoMsgsDur, "exitifnomsgs", time.Minute*0, "If we have not seen a message in this long, exit")
 }
 
 func main() {
