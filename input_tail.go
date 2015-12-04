@@ -1,6 +1,8 @@
 package loges
 
 import (
+	"strings"
+
 	"github.com/ActiveState/tail"
 	u "github.com/araddon/gou"
 )
@@ -23,7 +25,9 @@ func TailFile(filename string, config tail.Config, done chan bool, msgChan chan 
 	}
 	err = t.Wait()
 	if err != nil {
-		u.Error(err)
+		if !strings.Contains(err.Error(), "Failed to detect") {
+			u.Error(err)
+		}
 	}
 	if err := t.Stop(); err != nil {
 		u.Info(err)
