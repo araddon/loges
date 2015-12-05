@@ -153,7 +153,8 @@ func main() {
 		case "tail":
 			for _, filename := range flag.Args() {
 				tailDone := make(chan bool)
-				go loges.TailFile(filename, tail.Config{Follow: true, ReOpen: true}, tailDone, msgChan)
+				conf := tail.Config{Follow: true, ReOpen: true, Location: &tail.SeekInfo{0, os.SEEK_END}}
+				go loges.TailFile(filename, conf, tailDone, msgChan)
 			}
 		case "http":
 			go loges.HttpRun(httpPort, msgChan)
