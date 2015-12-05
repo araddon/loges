@@ -45,7 +45,7 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string,
 		for {
 			select {
 			case _ = <-timer.C:
-				u.Infof("errorCt: %d", errorCt)
+				//u.Infof("errorCt: %d", errorCt)
 				if errorCt < 5 {
 					// We reset errors back to 0, if we didn't climb too high
 					// so that they don't continually grow
