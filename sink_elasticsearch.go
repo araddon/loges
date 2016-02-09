@@ -83,10 +83,8 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string,
 	for in := range msgChan {
 		for _, transform := range transforms {
 			if msg := transform(in); msg != nil {
-				if in.DataType == "METRIC" || in.DataType == "METR" {
-					if !sendMetrics {
-						continue
-					}
+				if in.IsMetric() && !sendMetrics {
+					continue
 				} else {
 					lastMsgTime = time.Now()
 					msgCt += 1

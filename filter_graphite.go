@@ -114,13 +114,11 @@ func GraphiteTransform(logstashType, addr, prefix string, metricsToEs bool) Line
 
 	return func(d *LineEvent) *Event {
 		//u.Debugf("ll=%s   %s", d.DataType, string(d.Data))
-		if d.DataType == "METRIC" || d.DataType == "METR" {
+		if d.IsMetric() {
 			line := string(d.Data)
+			line = strings.Trim(line, " ")
 			tsStr := strconv.FormatInt(time.Now().In(loc).Unix(), 10)
-			if iMetric := strings.Index(line, d.DataType); iMetric > 0 {
-				line = line[iMetric+len(d.DataType)+1:]
-				line = strings.Trim(line, " ")
-			}
+
 			// 1.  Read nv/pairs
 			nv, err := NewNvMetrics(line)
 			if err != nil {
@@ -135,7 +133,7 @@ func GraphiteTransform(logstashType, addr, prefix string, metricsToEs bool) Line
 			evt := NewTsEvent(logstashType, d.Source, line, time.Now().In(loc))
 			evt.Fields = make(map[string]interface{})
 			evt.Fields["host"] = hostName
-			evt.Fields["level"] = d.DataType
+			evt.Fields["level"] = d.LogLevel
 			//u.Debugf("To Graphite! h='%s'  data=%s", host, string(d.Data))
 			mu.Lock()
 			defer mu.Unlock()

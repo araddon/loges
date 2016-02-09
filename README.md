@@ -3,7 +3,7 @@ Logging Utility & Daemon
 
 Read log data from Inputs [Tail Files, Stdin, Monit], perform transforms 
 [Combine lines(multi-line-errors)] and output to [ElasticSearch, Stdout]
-Recognize lines with metrics and send to Monitoring [Graphite, Librato, ..]
+Recognize lines with metrics and send to Monitoring [Graphite, InfluxDB, ..]
 
 
 ![Drawing](https://docs.google.com/drawings/d/1nGVabfy3PB0Zq-gsghKRkGU3eGz4zrcmpIrB0e2cs9M/pub?w=695&h=401)
@@ -53,24 +53,10 @@ Usage
 ----------------------
 
 ```sh
-loges --source=monit,tail --metrics=graphite \
+loges --source=monit,tail --filter=stdfiles --out=elasticsearch --metrics=graphite \
    /path/to/my/file \
-   /path/to/another
+   /path/to/another/file
+
 ```
-
-
-Extending
-----------------------
-
-Create Custom Formatter (see /example/main.go)::
-	
-	// custom formatter
-	func CustomFormatter(every uint64) loges.LineFormatter {
-		return func(e *loges.LineEvent) *loges.Event {
-			// custom formatting
-			return nil
-		}
-	}
-
 
 
