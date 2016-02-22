@@ -42,7 +42,10 @@ func FileFormatter(logstashType string, tags []string) LineTransform {
 
 			if d.IsJson() {
 				jd := json.RawMessage(d.Data)
-				evt.Raw = &jd
+				m := make(map[string]interface{})
+				if err := json.Unmarshal(d.Data, &m); err == nil {
+					evt.Raw = &jd
+				}
 			}
 			return evt
 
