@@ -26,7 +26,7 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 	posEnd := 0
 	var dataType []byte
 	var loglevel string
-	var dateStr string
+	var dateStr, prevDateStr string
 	var prevLogTs time.Time
 	lineCt := 0
 
@@ -52,6 +52,7 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 						defer func() {
 							// defer will run after prevDateStr already used to send message
 							prevLogTs = dts
+							prevDateStr = dateStr
 						}()
 					}
 					break
@@ -112,7 +113,9 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 					return
 				} else if pos > 0 && posEnd > 0 && pos < posEnd && len(data) > pos && len(data) > posEnd {
 					dataType = data[pos+1 : posEnd]
-					data = data[posEnd+1:]
+					if len(data) > len(prevDateStr) {
+						data = data[len(prevDateStr)+1:]
+					}
 
 				} else {
 					dataType = []byte("NA")
