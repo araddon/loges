@@ -27,6 +27,7 @@ func init() {
 // Representing data about a log line from file we are tailing
 type LineEvent struct {
 	Data      []byte
+	Prefix    string
 	Ts        time.Time // Date string if found
 	LogLevel  string    // [METRIC, INFO,  DEBUG]
 	Source    string    // Source = filename if file, else monit, etc

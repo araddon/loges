@@ -63,6 +63,7 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 
 		// Find first square bracket wrapper:   [WARN]
 		// 2014/07/10 11:04:20.653185 filter_fluentd.go:16: [DEBUG] %s
+		// datestr                                         pos, posEnd
 		pos = strings.IndexRune(line, '[')
 		posEnd = strings.IndexRune(line, ']')
 		if pos > 0 && posEnd > 0 && pos < posEnd && len(line) > pos && len(line) > posEnd {
@@ -107,6 +108,7 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 			if err == nil {
 				pos = bytes.IndexRune(data, '[')
 				posEnd = bytes.IndexRune(data, ']')
+				preFix := ""
 				if posEnd-8 > pos {
 					//u.Warnf("level:%s  \n\nline=%s", string(data[pos+1:posEnd]), string(data))
 					//buf.WriteString(line)
@@ -114,7 +116,9 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 				} else if pos > 0 && posEnd > 0 && pos < posEnd && len(data) > pos && len(data) > posEnd {
 					dataType = data[pos+1 : posEnd]
 					if len(data) > len(prevDateStr) {
-						data = data[len(prevDateStr)+1:]
+						preFix = string(data[len(prevDateStr)+1 : posEnd])
+						data = data[posEnd+1:]
+
 					}
 
 				} else {
@@ -124,7 +128,7 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 				// if !bytes.HasPrefix(data, datePrefix) {
 				// 	u.Warnf("ct=%d level:%s  \n\nline=%s", lineCt, string(data[pos+1:posEnd]), string(data))
 				// }
-				le := LineEvent{Data: data, Ts: prevLogTs, LogLevel: string(dataType), Source: filename, WriteErrs: 0}
+				le := LineEvent{Data: data, Prefix: preFix, Ts: prevLogTs, LogLevel: string(dataType), Source: filename, WriteErrs: 0}
 				//u.Debugf("lineevent: %+v", le)
 				msgChan <- &le
 

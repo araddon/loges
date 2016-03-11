@@ -34,19 +34,26 @@ func FileFormatter(logstashType string, tags []string) LineTransform {
 			u.Warn("Invalid line?", string(d.Data))
 			return nil
 		} else if !d.Ts.IsZero() {
-			evt := NewTsEvent(logstashType, d.Source, string(d.Data), d.Ts)
-			evt.Fields = make(map[string]interface{})
-			evt.Fields["host"] = hostName
-			evt.Fields["level"] = d.LogLevel
-			evt.Fields["WriteErrs"] = d.WriteErrs
-
 			if d.IsJson() {
+				evt := NewTsEvent(logstashType, d.Source, string(d.Data), d.Ts)
+				evt.Fields = make(map[string]interface{})
+				evt.Fields["codefile"] = d.Prefix
+				evt.Fields["host"] = hostName
+				evt.Fields["level"] = d.LogLevel
+				evt.Fields["WriteErrs"] = d.WriteErrs
 				jd := json.RawMessage(d.Data)
 				m := make(map[string]interface{})
 				if err := json.Unmarshal(d.Data, &m); err == nil {
 					evt.Raw = &jd
 				}
+				return evt
 			}
+			evt := NewTsEvent(logstashType, d.Source, d.Prefix+" "+string(d.Data), d.Ts)
+			evt.Fields = make(map[string]interface{})
+			evt.Fields["host"] = hostName
+			evt.Fields["codefile"] = d.Prefix
+			evt.Fields["level"] = d.LogLevel
+			evt.Fields["WriteErrs"] = d.WriteErrs
 			return evt
 
 		}
