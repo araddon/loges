@@ -90,7 +90,8 @@ func ToElasticSearch(msgChan chan *LineEvent, esType, esHost, ttl string,
 					msgCt += 1
 				}
 
-				if err := indexer.Index(msg.Index(), esType, msg.Id(), ttl, nil, msg, false); err != nil {
+				// Index(index string, _type string, id, parent, ttl string, date *time.Time, data interface{})
+				if err := indexer.Index(msg.Index(), esType, msg.Id(), "", ttl, nil, msg); err != nil {
 					u.Errorf("Index(ing) error: %v\n", err)
 
 					//Increment WriteErrs log and requeue message
