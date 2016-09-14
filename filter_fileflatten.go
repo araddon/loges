@@ -117,7 +117,9 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 					dataType = data[pos+1 : posEnd]
 					if len(data) > len(prevDateStr) {
 						preFix = string(data[len(prevDateStr)+1 : posEnd])
-						preFixParts := strings.Split(preFix, ":")
+						//                            [prefix             |- posEnd
+						// 2016/09/14 02:33:01.465711 entity.go:179: [ERROR]
+						preFixParts := strings.Split(preFix, ": ")
 						if len(preFixParts) > 1 {
 							preFix = preFixParts[0]
 						}
