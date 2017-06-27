@@ -115,7 +115,7 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 					return
 				} else if pos > 0 && posEnd > 0 && pos < posEnd && len(data) > pos && len(data) > posEnd {
 					dataType = data[pos+1 : posEnd]
-					if len(data) > len(prevDateStr) {
+					if len(data) > len(prevDateStr)+2 && len(prevDateStr)+1 < posEnd {
 						preFix = string(data[len(prevDateStr)+1 : posEnd])
 						//                            [prefix             |- posEnd
 						// 2016/09/14 02:33:01.465711 entity.go:179: [ERROR]
@@ -124,7 +124,6 @@ func MakeFileFlattener(filename string, msgChan chan *LineEvent) func(string) {
 							preFix = preFixParts[0]
 						}
 						data = data[posEnd+1:]
-
 					}
 
 				} else {
