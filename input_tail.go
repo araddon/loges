@@ -3,8 +3,8 @@ package loges
 import (
 	"strings"
 
-	"github.com/ActiveState/tail"
 	u "github.com/araddon/gou"
+	"github.com/hpcloud/tail"
 )
 
 var (
